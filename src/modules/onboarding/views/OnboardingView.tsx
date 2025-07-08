@@ -101,50 +101,17 @@ export function OnboardingView() {
   // Handle completion and redirect
   useEffect(() => {
     if (onboardingComplete) {
-      const completeOnboarding = async () => {
-        try {
-          const response = await fetch('/api/onboarding/complete', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
+      toast({
+        title: 'Welcome to Aurasense!',
+        description: 'Redirecting to dashboard...',
+        status: 'success',
+        duration: 3000,
+      });
 
-          const data = await response.json();
-
-          if (data.status === 'error') {
-            throw new Error(data.message);
-          }
-
-          // Update the session to reflect onboarded status
-          await updateSession();
-
-          toast({
-            title: 'Welcome to Aurasense!',
-            description: 'Your preferences have been saved. Redirecting to dashboard...',
-            status: 'success',
-            duration: 3000,
-          });
-
-          // Give time for the toast to be seen
-          setTimeout(() => router.push('/dashboard'), 2000);
-        } catch (error) {
-          console.error('Error completing onboarding:', error);
-          toast({
-            title: 'Error',
-            description: error instanceof Error ? error.message : 'Failed to complete onboarding. Please try again.',
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
-          // Reset onboarding complete flag so user can try again
-          setOnboardingComplete(false);
-        }
-      };
-
-      completeOnboarding();
+      // Give time for the toast to be seen
+      setTimeout(() => router.push('/dashboard'), 2000);
     }
-  }, [onboardingComplete, router, toast, updateSession]);
+  }, [onboardingComplete, router, toast]);
 
   // Simulate voice input and response
   const simulateConversation = async () => {
