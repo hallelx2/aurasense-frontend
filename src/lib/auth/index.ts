@@ -1,11 +1,16 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import type { User } from 'next-auth';
 
 // Dummy credentials for development
-const DUMMY_CREDENTIALS = {
+const DUMMY_USER: User = {
+  id: '1',
   email: 'test@example.com',
-  password: 'password123'
+  name: 'Test User',
+  isOnboarded: false, // Default to false, will be updated after onboarding
 };
+
+const DUMMY_PASSWORD = 'password123';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,14 +27,10 @@ export const authOptions: NextAuthOptions = {
 
         // Check against dummy credentials
         if (
-          credentials.email === DUMMY_CREDENTIALS.email &&
-          credentials.password === DUMMY_CREDENTIALS.password
+          credentials.email === DUMMY_USER.email &&
+          credentials.password === DUMMY_PASSWORD
         ) {
-          return {
-            id: '1',
-            email: DUMMY_CREDENTIALS.email,
-            name: 'Test User',
-          };
+          return DUMMY_USER;
         }
 
         return null;
@@ -43,9 +44,20 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.isOnboarded = user.isOnboarded;
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub || '1';
+        session.user.isOnboarded = token.isOnboarded as boolean;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
       }
       return session;
     }
