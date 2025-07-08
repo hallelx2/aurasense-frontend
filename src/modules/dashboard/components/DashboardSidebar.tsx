@@ -11,10 +11,7 @@ import {
   Icon,
   useColorModeValue,
   Divider,
-  Tooltip,
   Switch,
-  FormControl,
-  FormLabel,
   Collapse,
   useDisclosure,
   IconButton,
@@ -31,7 +28,6 @@ import {
   Users,
   Shield,
   Settings,
-  Calendar,
   Plus,
   ChevronDown,
   ChevronRight,
@@ -59,23 +55,33 @@ interface Agent {
   comingSoon?: boolean;
 }
 
+interface Session {
+    id: string;
+    title: string;
+    agent: Agent;
+}
+
 interface DashboardSidebarProps {
   agents: Agent[];
-  selectedAgents: string[];
-  onAgentToggle: (agentId: string) => void;
+  sessions: Session[];
+  selectedSession: Session | null;
+  onSessionSelect: (session: Session) => void;
   onNewSession: () => void;
-  activeSessionsCount: number;
+  onAgentToggle: (agentId: string) => void;
+  selectedAgents: string[];
 }
 
 export function DashboardSidebar({
   agents,
-  selectedAgents,
-  onAgentToggle,
+  sessions,
+  selectedSession,
+  onSessionSelect,
   onNewSession,
-  activeSessionsCount,
+  onAgentToggle,
+  selectedAgents,
 }: DashboardSidebarProps) {
+  const { isOpen: isSessionsOpen, onToggle: onSessionsToggle } = useDisclosure({ defaultIsOpen: true });
   const { isOpen: isAgentsOpen, onToggle: onAgentsToggle } = useDisclosure({ defaultIsOpen: true });
-  const { isOpen: isOrderingsOpen, onToggle: onOrderingsToggle } = useDisclosure({ defaultIsOpen: true });
   const { isOpen: isSettingsOpen, onToggle: onSettingsToggle } = useDisclosure({ defaultIsOpen: false });
 
   const bgColor = useColorModeValue('white', 'gray.800');
@@ -116,13 +122,82 @@ export function DashboardSidebar({
           </Menu>
         </HStack>
 
+        {/* Sessions Section */}
+        <Box>
+          <Button
+            variant="ghost"
+            onClick={onSessionsToggle}
+            leftIcon={<Icon as={isSessionsOpen ? ChevronDown : ChevronRight} />}
+            rightIcon={<Badge colorScheme="primary" fontSize="xs">{sessions.length}</Badge>}
+            justifyContent="space-between"
+            w="full"
+            h="auto"
+            p={2}
+            fontWeight="semibold"
+            fontSize="sm"
+            color={textColor}
+          >
+            Sessions
+          </Button>
+
+          <Collapse in={isSessionsOpen} animateOpacity>
+            <VStack spacing={2} mt={2} pl={2}>
+                <Button
+                    leftIcon={<Plus />}
+                    colorScheme="primary"
+                    size="sm"
+                    w="full"
+                    onClick={onNewSession}
+                >
+                    New Chat
+                </Button>
+              {sessions.map((session) => (
+                <MotionBox
+                  key={session.id}
+                  w="full"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <HStack
+                    p={3}
+                    borderRadius="md"
+                    bg={selectedSession?.id === session.id ? session.agent.bgColor : 'transparent'}
+                    borderWidth={1}
+                    borderColor={selectedSession?.id === session.id ? session.agent.color : 'transparent'}
+                    cursor="pointer"
+                    position="relative"
+                    onClick={() => onSessionSelect(session)}
+                  >
+                    <Avatar
+                      size="sm"
+                      bg={session.agent.color}
+                      color="white"
+                      icon={<Icon as={session.agent.icon} />}
+                    />
+                    <VStack align="start" spacing={0} flex={1}>
+                      <HStack spacing={2}>
+                        <Text fontWeight="medium" fontSize="sm">{session.title}</Text>
+                      </HStack>
+                      <Text fontSize="xs" color={mutedTextColor} noOfLines={1}>
+                        with {session.agent.name}
+                      </Text>
+                    </VStack>
+                  </HStack>
+                </MotionBox>
+              ))}
+            </VStack>
+          </Collapse>
+        </Box>
+
+        <Divider />
+
         {/* Agents Section */}
         <Box>
           <Button
             variant="ghost"
             onClick={onAgentsToggle}
             leftIcon={<Icon as={isAgentsOpen ? ChevronDown : ChevronRight} />}
-            rightIcon={<Badge colorScheme="primary" fontSize="xs">{agents.filter(a => a.isEnabled).length}</Badge>}
+            rightIcon={<Badge colorScheme="blue" fontSize="xs">{selectedAgents.length}</Badge>}
             justifyContent="space-between"
             w="full"
             h="auto"
@@ -146,9 +221,9 @@ export function DashboardSidebar({
                   <HStack
                     p={3}
                     borderRadius="md"
-                    bg={agent.isEnabled ? agent.bgColor : 'transparent'}
+                    bg={selectedAgents.includes(agent.id) ? agent.bgColor : 'transparent'}
                     borderWidth={1}
-                    borderColor={agent.isEnabled ? agent.color : 'transparent'}
+                    borderColor={selectedAgents.includes(agent.id) ? agent.color : 'transparent'}
                     opacity={agent.comingSoon ? 0.5 : 1}
                     cursor={agent.comingSoon ? 'not-allowed' : 'pointer'}
                     position="relative"
@@ -166,9 +241,6 @@ export function DashboardSidebar({
                         {agent.comingSoon && (
                           <Badge colorScheme="gray" fontSize="xs">Soon</Badge>
                         )}
-                        {agent.isActive && (
-                          <Box w={2} h={2} bg="green.500" borderRadius="full" />
-                        )}
                       </HStack>
                       <Text fontSize="xs" color={mutedTextColor} noOfLines={1}>
                         {agent.subtitle}
@@ -176,7 +248,7 @@ export function DashboardSidebar({
                     </VStack>
                     <Switch
                       size="sm"
-                      isChecked={agent.isEnabled}
+                      isChecked={selectedAgents.includes(agent.id)}
                       isDisabled={agent.comingSoon}
                       onChange={() => onAgentToggle(agent.id)}
                       colorScheme="primary"
@@ -184,61 +256,6 @@ export function DashboardSidebar({
                   </HStack>
                 </MotionBox>
               ))}
-            </VStack>
-          </Collapse>
-        </Box>
-
-        <Divider />
-
-        {/* Orderings Section */}
-        <Box>
-          <Button
-            variant="ghost"
-            onClick={onOrderingsToggle}
-            leftIcon={<Icon as={isOrderingsOpen ? ChevronDown : ChevronRight} />}
-            rightIcon={<Badge colorScheme="blue" fontSize="xs">{activeSessionsCount}</Badge>}
-            justifyContent="space-between"
-            w="full"
-            h="auto"
-            p={2}
-            fontWeight="semibold"
-            fontSize="sm"
-            color={textColor}
-          >
-            Active Sessions
-          </Button>
-
-          <Collapse in={isOrderingsOpen} animateOpacity>
-            <VStack spacing={2} mt={2} pl={2}>
-              <Button
-                leftIcon={<Plus />}
-                colorScheme="primary"
-                size="sm"
-                w="full"
-                onClick={onNewSession}
-                isDisabled={selectedAgents.length === 0}
-              >
-                New Session
-              </Button>
-
-              {activeSessionsCount > 0 && (
-                <Box w="full" p={3} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
-                  <HStack justify="space-between">
-                    <VStack align="start" spacing={1}>
-                      <Text fontSize="sm" fontWeight="medium">Food Order Session</Text>
-                      <Text fontSize="xs" color={mutedTextColor}>with Chef Agent</Text>
-                    </VStack>
-                    <Box w={2} h={2} bg="green.500" borderRadius="full" />
-                  </HStack>
-                </Box>
-              )}
-
-              <Text fontSize="xs" color={mutedTextColor} textAlign="center" mt={2}>
-                {selectedAgents.length === 0
-                  ? 'Select agents to start sessions'
-                  : `${selectedAgents.length} agent${selectedAgents.length > 1 ? 's' : ''} selected`
-                }
-              </Text>
             </VStack>
           </Collapse>
         </Box>

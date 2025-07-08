@@ -21,12 +21,16 @@ import {
   CardBody,
   CardHeader,
   CardFooter,
+  useToast,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, UserPlus, LogIn } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, ArrowLeft } from 'lucide-react';
 import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { SignupSchema, SignupInput } from '@/types/auth';
+import { authService } from '@/lib/api/auth';
 
 const MotionCard = motion(Card);
 
@@ -41,6 +45,8 @@ export default function SignupView() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const toast = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -49,6 +55,7 @@ export default function SignupView() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     // Zod validation
     const result = SignupSchema.safeParse(form);
     if (!result.success) {
@@ -61,8 +68,56 @@ export default function SignupView() {
       return;
     }
     setErrors({});
-    // TODO: Add API call here
-    setTimeout(() => setLoading(false), 1200);
+
+    try {
+      // Register the user
+      const registerResponse = await authService.register({
+        email: form.email,
+        password: form.password,
+        first_name: form.firstName,
+        last_name: form.lastName,
+        username: form.username,
+      });
+
+      if (!registerResponse?.data?.user) {
+        throw new Error('Registration failed');
+      }
+
+      // Sign in the user after successful registration
+      const signInResponse = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (signInResponse?.error) {
+        toast({
+          title: "Authentication Error",
+          description: "Error signing in after registration. Please try logging in manually.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        router.push('/auth/signin');
+        return;
+      }
+
+      // Refresh to get the latest session
+      router.refresh();
+
+      // Redirect to onboarding after successful registration
+      router.push('/onboarding');
+    } catch (error: any) {
+      toast({
+        title: "Registration Error",
+        description: error.response?.data?.message || "An error occurred during registration",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const bgGradient = useColorModeValue(
@@ -73,6 +128,20 @@ export default function SignupView() {
   return (
     <Box minH="100vh" bgGradient={bgGradient} py={16}>
       <Container maxW="md">
+        <Link
+          as={NextLink}
+          href="/"
+          display="flex"
+          alignItems="center"
+          gap={2}
+          color="primary.500"
+          fontWeight="medium"
+          mb={4}
+          _hover={{ color: 'primary.600', textDecoration: 'none' }}
+        >
+          <ArrowLeft size={20} />
+          Back to Home
+        </Link>
         <MotionCard
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}

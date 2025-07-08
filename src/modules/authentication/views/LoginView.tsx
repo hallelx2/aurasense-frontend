@@ -21,11 +21,14 @@ import {
   CardBody,
   CardHeader,
   CardFooter,
+  useToast,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react';
 import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { LoginSchema, LoginInput } from '@/types/auth';
 
 const MotionCard = motion(Card);
@@ -38,14 +41,17 @@ export default function LoginView() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const toast = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     // Zod validation
     const result = LoginSchema.safeParse(form);
     if (!result.success) {
@@ -58,8 +64,42 @@ export default function LoginView() {
       return;
     }
     setErrors({});
-    // TODO: Add API call here
-    setTimeout(() => setLoading(false), 1200);
+
+    try {
+      const response = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      });
+
+      if (response?.error) {
+        toast({
+          title: "Authentication Error",
+          description: "Invalid email or password",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Refresh to get the latest session
+      router.refresh();
+
+      // Check if user needs onboarding (we'll get this from the session)
+      // For now, redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred during sign in",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const bgGradient = useColorModeValue(
@@ -70,6 +110,20 @@ export default function LoginView() {
   return (
     <Box minH="100vh" bgGradient={bgGradient} py={16}>
       <Container maxW="md">
+        <Link
+          as={NextLink}
+          href="/"
+          display="flex"
+          alignItems="center"
+          gap={2}
+          color="primary.500"
+          fontWeight="medium"
+          mb={4}
+          _hover={{ color: 'primary.600', textDecoration: 'none' }}
+        >
+          <ArrowLeft size={20} />
+          Back to Home
+        </Link>
         <MotionCard
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}

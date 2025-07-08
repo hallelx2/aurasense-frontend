@@ -16,13 +16,20 @@ import {
   InputLeftElement,
   Input,
   Icon,
+  VStack,
+  Center,
 } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Bell } from 'lucide-react';
 import { ChefHat, Plane, Users, Shield } from 'lucide-react';
 import { DashboardSidebar } from '../components/DashboardSidebar';
-import { SessionsList } from '../components/SessionsList';
+import { SessionView } from '../views/SessionView';
 import { SessionModal } from '../components/SessionModal';
+import { Session } from 'next-auth';
+
+interface DashboardViewProps {
+  user: Session['user'];
+}
 
 // Agent definitions with Chef as the only functional one
 const agents = [
@@ -88,78 +95,46 @@ const agents = [
   }
 ];
 
-// Order session interface
-interface OrderSession {
-  id: string;
-  agentId: string;
-  title: string;
-  status: 'active' | 'completed' | 'pending';
-  createdAt: string;
-  lastActivity: string;
-  summary?: string;
-  orderValue?: number;
-  location?: string;
-  rating?: number;
+interface Session {
+    id: string;
+    title: string;
+    agent: any;
 }
 
-// Mock order sessions
-const MOCK_SESSIONS: OrderSession[] = [
-  {
-    id: '1',
-    agentId: 'chef',
-    title: 'Italian Dinner Order',
-    status: 'completed',
-    createdAt: '2024-01-15',
-    lastActivity: '2 hours ago',
-    summary: 'Ordered pasta primavera from Mario\'s Kitchen',
-    orderValue: 28.50,
-    location: 'Downtown',
-    rating: 5
-  },
-  {
-    id: '2',
-    agentId: 'chef',
-    title: 'Healthy Lunch Planning',
-    status: 'active',
-    createdAt: '2024-01-14',
-    lastActivity: '30 minutes ago',
-    summary: 'Finding gluten-free options for team lunch',
-    orderValue: 45.00,
-    location: 'Office District'
-  },
-  {
-    id: '3',
-    agentId: 'chef',
-    title: 'Weekend Brunch',
-    status: 'pending',
-    createdAt: '2024-01-13',
-    lastActivity: '1 day ago',
-    summary: 'Planning brunch for 6 people with dietary restrictions',
-    location: 'Midtown'
-  }
-];
-
-export function DashboardView() {
-  const [selectedAgents, setSelectedAgents] = useState<string[]>(['chef']); // Chef is enabled by default
-  const [sessions, setSessions] = useState<OrderSession[]>(MOCK_SESSIONS);
-  const [isLoading, setIsLoading] = useState(false);
+export function DashboardView({ user }: DashboardViewProps) {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [selectedAgents, setSelectedAgents] = useState<string[]>(['chef']);
   const { isOpen: isSessionModalOpen, onOpen: onSessionModalOpen, onClose: onSessionModalClose } = useDisclosure();
   const toast = useToast();
 
-  const handleAgentToggle = (agentId: string) => {
-    const agent = agents.find(a => a.id === agentId);
-
-    if (agent?.comingSoon) {
-      toast({
-        title: 'Coming Soon!',
-        description: `${agent.name} agent will be available in the next update.`,
-        status: 'info',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
+  useEffect(() => {
+    // Load initial session
+    if (sessions.length > 0 && !selectedSession) {
+      setSelectedSession(sessions[0]);
     }
+  }, [sessions, selectedSession]);
 
+  const handleNewSession = () => {
+    onSessionModalOpen();
+  };
+
+  const handleCreateSession = (sessionData: any) => {
+    const agent = agents.find(a => a.id === sessionData.agentId);
+    if (!agent) return;
+
+    const newSession: Session = {
+      id: `${Date.now()}`,
+      title: sessionData.title,
+      agent: agent,
+    };
+
+    setSessions(prev => [newSession, ...prev]);
+    setSelectedSession(newSession);
+    onSessionModalClose();
+  };
+
+  const handleAgentToggle = (agentId: string) => {
     setSelectedAgents(prev => {
       if (prev.includes(agentId)) {
         return prev.filter(id => id !== agentId);
@@ -168,95 +143,6 @@ export function DashboardView() {
       }
     });
   };
-
-  const handleNewSession = () => {
-    if (selectedAgents.length === 0) {
-      toast({
-        title: 'Select an agent first',
-        description: 'Please select at least one agent to start a new session.',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-    onSessionModalOpen();
-  };
-
-  const handleCreateSession = (sessionData: any) => {
-    const newSession: OrderSession = {
-      id: `${Date.now()}`,
-      agentId: sessionData.agentId,
-      title: sessionData.title,
-      status: 'active',
-      createdAt: new Date().toISOString().split('T')[0],
-      lastActivity: 'Just now',
-      summary: sessionData.description || `Starting new session with ${agents.find(a => a.id === sessionData.agentId)?.name}...`
-    };
-
-    setSessions(prev => [newSession, ...prev]);
-  };
-
-  const handleSessionClick = (sessionId: string) => {
-    const session = sessions.find(s => s.id === sessionId);
-    if (session) {
-      toast({
-        title: 'Opening Session',
-        description: `Opening "${session.title}" session...`,
-        status: 'info',
-        duration: 2000,
-        isClosable: true,
-      });
-      // Here you would navigate to the session detail view
-    }
-  };
-
-  const handleSessionAction = (sessionId: string, action: string) => {
-    const session = sessions.find(s => s.id === sessionId);
-    if (!session) return;
-
-    switch (action) {
-      case 'resume':
-        toast({
-          title: 'Resuming Session',
-          description: `Resuming "${session.title}"...`,
-          status: 'info',
-          duration: 2000,
-          isClosable: true,
-        });
-        break;
-      case 'edit':
-        toast({
-          title: 'Edit Session',
-          description: 'Edit functionality coming soon!',
-          status: 'info',
-          duration: 2000,
-          isClosable: true,
-        });
-        break;
-      case 'share':
-        toast({
-          title: 'Share Session',
-          description: 'Share functionality coming soon!',
-          status: 'info',
-          duration: 2000,
-          isClosable: true,
-        });
-        break;
-      case 'delete':
-        setSessions(prev => prev.filter(s => s.id !== sessionId));
-        toast({
-          title: 'Session Deleted',
-          description: `"${session.title}" has been deleted.`,
-          status: 'success',
-          duration: 2000,
-          isClosable: true,
-        });
-        break;
-    }
-  };
-
-  const activeSessionsCount = sessions.filter(s => s.status === 'active').length;
 
   return (
     <Flex minH="100vh" direction="column" bg={useColorModeValue('gray.50', 'gray.900')}>
@@ -297,7 +183,7 @@ export function DashboardView() {
             <Icon as={Bell} />
           </Button>
 
-          <Avatar name="User" size="sm" bg="primary.500" color="white" />
+          <Avatar name={user?.name || "User"} src={user?.image || undefined} size="sm" bg="primary.500" color="white" />
         </HStack>
       </Flex>
 
@@ -305,31 +191,39 @@ export function DashboardView() {
         {/* Sidebar */}
         <DashboardSidebar
           agents={agents}
-          selectedAgents={selectedAgents}
-          onAgentToggle={handleAgentToggle}
+          sessions={sessions}
+          selectedSession={selectedSession}
+          onSessionSelect={setSelectedSession}
           onNewSession={handleNewSession}
-          activeSessionsCount={activeSessionsCount}
+          onAgentToggle={handleAgentToggle}
+          selectedAgents={selectedAgents}
         />
 
         {/* Main Content */}
-        <SessionsList
-          sessions={sessions}
-          agents={agents}
-          selectedAgents={selectedAgents}
-          onSessionClick={handleSessionClick}
-          onSessionAction={handleSessionAction}
-          onNewSession={handleNewSession}
-          isLoading={isLoading}
-        />
+        <Box flex={1} p={6}>
+          {selectedSession ? (
+            <SessionView session={selectedSession} />
+          ) : (
+            <Center h="full">
+              <VStack spacing={4}>
+                <Heading>No session selected</Heading>
+                <Text>Create a new session to get started.</Text>
+                <Button colorScheme="primary" onClick={handleNewSession}>
+                  New Chat
+                </Button>
+              </VStack>
+            </Center>
+          )}
+        </Box>
       </Flex>
 
       {/* Session Modal */}
       <SessionModal
         isOpen={isSessionModalOpen}
         onClose={onSessionModalClose}
-        selectedAgents={selectedAgents}
-        agents={agents}
+        agents={agents.filter(a => !a.comingSoon)}
         onCreateSession={handleCreateSession}
+        selectedAgents={selectedAgents}
       />
     </Flex>
   );

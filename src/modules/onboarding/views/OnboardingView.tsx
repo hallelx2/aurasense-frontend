@@ -19,13 +19,11 @@ import UseAnimations from 'react-useanimations';
 import microphone from 'react-useanimations/lib/microphone';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { io, Socket } from 'socket.io-client';
 import { useToast } from '@chakra-ui/react';
+import { useSession } from 'next-auth/react';
 
 const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
-
-const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:4000';
 
 interface AgentMessage {
   id: string;
@@ -38,21 +36,37 @@ interface OnboardingProgress {
   [key: string]: boolean;
 }
 
-// Standardized onboarding progress message type
-interface OnboardingProgressUpdate {
-  type: 'onboarding_progress';
-  payload: {
-    key: string;
-    value: boolean;
-  };
-}
-
 const ONBOARDING_ITEMS = [
-  { key: 'dietaryPreferences', label: 'Dietary Preferences' },
-  { key: 'restrictions', label: 'Dietary Restrictions' },
-  { key: 'allergies', label: 'Allergies' },
-  { key: 'voiceSample', label: 'Voice Sample' },
-  { key: 'communityInterests', label: 'Community Interests' },
+  {
+    key: 'dietaryPreferences',
+    label: 'Dietary Preferences',
+    agentPrompt: "Hi! Let's start with your dietary preferences. Do you follow any specific diet like vegetarian, vegan, or keto?",
+    simulatedResponse: "I prefer a balanced diet with lots of vegetables and lean proteins.",
+  },
+  {
+    key: 'restrictions',
+    label: 'Dietary Restrictions',
+    agentPrompt: "Great! Now, do you have any dietary restrictions we should know about?",
+    simulatedResponse: "Yes, I'm lactose intolerant and try to avoid dairy products.",
+  },
+  {
+    key: 'allergies',
+    label: 'Allergies',
+    agentPrompt: "Important to know about allergies. Do you have any food allergies?",
+    simulatedResponse: "I'm allergic to peanuts and shellfish.",
+  },
+  {
+    key: 'voiceSample',
+    label: 'Voice Sample',
+    agentPrompt: "I'll need a voice sample to better understand you. Could you say a few sentences about your favorite food?",
+    simulatedResponse: "I love Italian cuisine, especially homemade pasta with fresh tomato sauce and basil.",
+  },
+  {
+    key: 'communityInterests',
+    label: 'Community Interests',
+    agentPrompt: "Finally, what kind of food communities would you like to join?",
+    simulatedResponse: "I'm interested in healthy cooking, meal prep, and learning about different cuisines.",
+  },
 ];
 
 export function OnboardingView() {
@@ -66,98 +80,124 @@ export function OnboardingView() {
   const [progress, setProgress] = useState<OnboardingProgress>({});
   const [isListening, setIsListening] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
   const toast = useToast();
   const router = useRouter();
+  const { data: session, update: updateSession } = useSession();
 
-  // Connect to websocket
+  // Start the conversation when component mounts
   useEffect(() => {
-    const socket = io(WS_URL, { transports: ['websocket'] });
-    socketRef.current = socket;
-    socket.on('agent_message', (msg: AgentMessage) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-    // Standardized onboarding progress update
-    socket.on('onboarding_progress', (msg: OnboardingProgressUpdate) => {
-      if (msg && msg.type === 'onboarding_progress') {
-        setProgress(prev => {
-          const updated = { ...prev, [msg.payload.key]: msg.payload.value };
-          // If all are true, set onboarding complete
-          if (ONBOARDING_ITEMS.every(item => updated[item.key])) {
-            setOnboardingComplete(true);
-          }
-          return updated;
-        });
-      }
-    });
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  // Redirect when onboarding is complete (mock or real)
-  useEffect(() => {
-    if (ONBOARDING_ITEMS.every(item => progress[item.key])) {
-      if (!onboardingComplete) setOnboardingComplete(true);
+    if (messages.length === 0) {
+      const firstItem = ONBOARDING_ITEMS[0];
+      setMessages([{
+        id: Date.now().toString(),
+        sender: 'agent',
+        text: firstItem.agentPrompt,
+        timestamp: new Date().toISOString(),
+      }]);
     }
+  }, [messages.length]);
+
+  // Handle completion and redirect
+  useEffect(() => {
     if (onboardingComplete) {
-      toast({
-        title: 'Onboarding Complete!',
-        description: 'Redirecting to your dashboard...'
-      });
-      setTimeout(() => router.push('/dashboard'), 2000);
-    }
-  }, [progress, onboardingComplete, router, toast]);
+      const completeOnboarding = async () => {
+        try {
+          const response = await fetch('/api/onboarding/complete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
 
-  // Mock agent and progress for demo/testing
-  const mockAgentStep = () => {
-    // Find the next incomplete item
-    const nextItem = ONBOARDING_ITEMS.find(item => !progress[item.key]);
-    if (!nextItem) return;
-    // Add agent message
+          const data = await response.json();
+
+          if (data.status === 'error') {
+            throw new Error(data.message);
+          }
+
+          // Update the session to reflect onboarded status
+          await updateSession();
+
+          toast({
+            title: 'Welcome to Aurasense!',
+            description: 'Your preferences have been saved. Redirecting to dashboard...',
+            status: 'success',
+            duration: 3000,
+          });
+
+          // Give time for the toast to be seen
+          setTimeout(() => router.push('/dashboard'), 2000);
+        } catch (error) {
+          console.error('Error completing onboarding:', error);
+          toast({
+            title: 'Error',
+            description: error instanceof Error ? error.message : 'Failed to complete onboarding. Please try again.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          // Reset onboarding complete flag so user can try again
+          setOnboardingComplete(false);
+        }
+      };
+
+      completeOnboarding();
+    }
+  }, [onboardingComplete, router, toast, updateSession]);
+
+  // Simulate voice input and response
+  const simulateConversation = async () => {
+    const currentItem = ONBOARDING_ITEMS[currentStep];
+    if (!currentItem) return;
+
+    // Simulate user speaking
+    setIsListening(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsListening(false);
+
+    // Add user's simulated response
     setMessages(prev => [
       ...prev,
       {
-        id: `${Date.now()}`,
-        sender: 'agent',
-        text: `Please provide your ${nextItem.label.toLowerCase()}.`,
-        timestamp: new Date().toISOString(),
-      },
-      {
-        id: `${Date.now() + 1}`,
+        id: Date.now().toString(),
         sender: 'user',
-        text: `Here is my ${nextItem.label.toLowerCase()}.`,
+        text: currentItem.simulatedResponse,
         timestamp: new Date().toISOString(),
-      },
+      }
     ]);
-    // Mark as complete (simulate backend WSS message)
-    setTimeout(() => {
-      setProgress(prev => {
-        const updated = { ...prev, [nextItem.key]: true };
-        // If all are true, set onboarding complete
-        if (ONBOARDING_ITEMS.every(item => updated[item.key])) {
-          setOnboardingComplete(true);
-        }
-        return updated;
-      });
-    }, 500);
+
+    // Mark current step as complete
+    setProgress(prev => ({
+      ...prev,
+      [currentItem.key]: true
+    }));
+
+    // Move to next step
+    if (currentStep < ONBOARDING_ITEMS.length - 1) {
+      const nextItem = ONBOARDING_ITEMS[currentStep + 1];
+      setTimeout(() => {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            sender: 'agent',
+            text: nextItem.agentPrompt,
+            timestamp: new Date().toISOString(),
+          }
+        ]);
+        setCurrentStep(currentStep + 1);
+      }, 1000);
+    } else {
+      // All steps complete
+      setOnboardingComplete(true);
+    }
   };
 
-  // Voice icon click handler (mock)
   const handleVoiceInput = async () => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      setIsListening(true);
-      toast({
-        title: 'Listening... Speak now!',
-        status: 'info',
-        duration: 2000,
-        isClosable: true,
-      });
-      setTimeout(() => {
-        setIsListening(false);
-        mockAgentStep();
-      }, 2000);
+      simulateConversation();
     } catch (err) {
       toast({
         title: 'Microphone Access Denied',
@@ -167,10 +207,6 @@ export function OnboardingView() {
         isClosable: true,
       });
     }
-  };
-
-  const handleGoBack = () => {
-    window.history.back();
   };
 
   return (
@@ -205,7 +241,7 @@ export function OnboardingView() {
             </VStack>
             {/* Microphone icon at the bottom center of chat area */}
             <Center position="absolute" bottom={4} left={0} right={0}>
-          <Button
+              <Button
                 size="xl"
                 bg={isListening ? 'voice.listening' : 'primary.500'}
                 color="white"
@@ -225,10 +261,10 @@ export function OnboardingView() {
                   strokeColor={isListening ? '#FF6B35' : 'white'}
                 />
               </Button>
-              </Center>
+            </Center>
           </Box>
 
-          {/* Collected Info / Progress as checklist */}
+          {/* Progress Checklist */}
           <Box flex={1} bg={useColorModeValue('white', 'gray.800')} borderRadius="2xl" boxShadow="lg" p={8} minH="500px">
             <Heading size="md" mb={4} color="primary.500">Your Progress</Heading>
             <VStack align="stretch" spacing={4}>
@@ -250,9 +286,7 @@ export function OnboardingView() {
                       <Icon as={Mic} color="white" w={3} h={3} />
                     )}
                   </Box>
-                  <Text color={progress[item.key] ? 'green.600' : mutedColor} fontWeight={progress[item.key] ? 'bold' : 'normal'}>
-                    {item.label}
-              </Text>
+                  <Text color={textColor}>{item.label}</Text>
                 </HStack>
               ))}
             </VStack>
