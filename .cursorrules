@@ -1,0 +1,757 @@
+# Aurasense: Voice-First Agentic Lifestyle Companion - Cursor Rules
+
+## Environment & Package Manager
+
+- **OS**: Linux
+- **Package Manager**: Bun
+- **Node.js Framework**: Next.js 15+ (App Router)
+
+## Core Dependencies
+
+- Shadcn UI components (primary UI library)
+- Chakra UI (theming and accessibility)
+- useAnimations (animated icons for accessibility)
+- Framer Motion (page transitions and voice feedback)
+- Lucide React (icon library)
+- Zod (type validation)
+- TanStack Query (client-side data fetching)
+- Axios (HTTP client)
+- NextAuth.js (authentication)
+- Socket.io (real-time websocket connections)
+- AWS SDK (S3 audio uploads)
+- Groq API (voice processing and LLM)
+
+## Product Overview
+
+Aurasense is a revolutionary voice-first, agent-powered lifestyle companion that transforms how people interact with food ordering, travel recommendations, and social networking through:
+
+- **Voice-First Interface**: Primary interaction through voice with visual support
+- **Agentic Architecture**: Six specialized agents handling different user needs
+- **Temporal Knowledge**: Learning and evolving with user preferences over time
+- **Accessibility-First**: Designed for universal access including visually impaired users
+- **Health-Aware**: Prevents dietary violations and health risks
+
+## Project Architecture
+
+### Folder Structure
+
+```text
+src/
+├── app/                    # Next.js App Router pages
+├── components/             # Global reusable components (Shadcn UI, Chakra UI, etc.)
+├── modules/               # Page-specific modules
+│   ├── onboarding/        # Voice onboarding flow
+│   ├── authentication/    # Voice authentication with email verification
+│   ├── dashboard/         # Main voice interface hub
+│   ├── food/             # Food discovery and ordering
+│   ├── travel/           # Travel and hotel recommendations
+│   ├── community/        # Social networking and connections
+│   └── profile/          # User preferences and voice settings
+├── agents/               # AI agent implementations
+│   ├── onboarding/       # Conversational registration agent
+│   ├── auth/            # Voice authentication agent
+│   ├── food/            # Food recommendation and ordering agent
+│   ├── travel/          # Travel and hotel agent
+│   ├── social/          # Community and networking agent
+│   └── context/         # Profile and context management agent
+├── types/               # Zod schemas and TypeScript types
+├── lib/                 # Utilities, configs, API clients
+│   ├── auth/           # NextAuth configuration
+│   ├── voice/          # Voice processing utilities
+│   ├── websocket/      # Socket.io client setup
+│   └── s3/             # AWS S3 audio upload utilities
+├── hooks/              # Custom React hooks
+├── styles/             # Themes and animations
+└── utils/              # Helper functions
+```
+
+### Page Architecture Pattern
+
+Every page follows this pattern:
+
+1. **Server-side authentication** (NextAuth session check)
+2. **User profile loading** (user preferences and dietary restrictions)
+3. **Voice interface setup** (audio permissions and voice recognition)
+4. **Agent initialization** (relevant AI agents for the page)
+5. **Real-time connections** (websocket for live updates)
+6. **View rendering** (voice-first with visual support)
+
+## Development Rules
+
+### 1. Command Usage (Linux Shell)
+
+Always use Linux-compatible commands:
+
+```bash
+# Package management
+bun add [package-name]
+bun remove [package-name]
+bun dev
+bun build
+
+# File operations
+mkdir -p src/modules/food/components
+cp src/components/ui/button.tsx src/modules/food/components/
+```
+
+### 2. Server vs Client Components
+
+- **Default**: All components are SERVER-SIDE unless explicitly needed client-side
+- **Client-side required for**: Voice interactions, audio processing, websocket connections, real-time animations, theming, TanStack Query
+- **Mark client components**: Use `"use client"` directive
+
+### 3. Voice-First Page Implementation Pattern
+
+#### Example: Food Discovery Page
+
+```typescript
+// src/app/food/page.tsx (SERVER COMPONENT)
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { FoodDiscoveryView } from '@/modules/food/views/FoodDiscoveryView';
+import { authOptions } from '@/lib/auth';
+import { getUserProfile } from '@/lib/api/profile';
+import { fetchNearbyRestaurants } from '@/lib/api/food';
+
+export default async function FoodDiscoveryPage() {
+  // 1. Server-side authentication with NextAuth
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect('/auth/signin');
+  }
+
+  // 2. User profile loading
+  const userProfile = await getUserProfile(session.user.id);
+
+  // 3. Data fetching with user preferences
+  const nearbyRestaurants = await fetchNearbyRestaurants({
+    userId: session.user.id,
+    userPreferences: userProfile.preferences,
+    location: userProfile.currentLocation,
+    healthRestrictions: userProfile.healthProfile
+  });
+
+  // 4. View rendering with voice-first interface
+  return (
+    <FoodDiscoveryView
+      restaurants={nearbyRestaurants}
+      userProfile={userProfile}
+      userSession={session}
+    />
+  );
+}
+```
+
+#### Example: Food Discovery View
+
+```typescript
+// src/modules/food/views/FoodDiscoveryView.tsx (SERVER COMPONENT)
+import { VoiceInterface } from '../components/VoiceInterface';
+import { RestaurantGrid } from '../components/RestaurantGrid';
+import { PreferenceFilters } from '../components/PreferenceFilters';
+import { HealthSafetyIndicators } from '../components/HealthSafetyIndicators';
+import type { Restaurant, UserProfile } from '@/types/food';
+
+interface FoodDiscoveryViewProps {
+  restaurants: Restaurant[];
+  userProfile: UserProfile;
+  userSession: any;
+}
+
+export function FoodDiscoveryView({ restaurants, userProfile, userSession }: FoodDiscoveryViewProps) {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-teal-50">
+      <div className="container mx-auto px-4 py-6">
+        <VoiceInterface
+          userProfile={userProfile}
+          prompt="What type of food are you craving today?"
+          onVoiceCommand={(command) => console.log('Voice command:', command)}
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
+          <aside className="lg:col-span-1">
+            <PreferenceFilters userPreferences={userProfile.preferences} />
+            <HealthSafetyIndicators healthProfile={userProfile.healthProfile} />
+          </aside>
+
+          <main className="lg:col-span-3">
+            <RestaurantGrid
+              restaurants={restaurants}
+              userProfile={userProfile}
+              onRestaurantSelect={(restaurant) => console.log('Selected:', restaurant)}
+            />
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### Example: Voice Interface Component (Client Component)
+
+```typescript
+// src/modules/food/components/VoiceInterface.tsx (CLIENT COMPONENT)
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { motion } from 'framer-motion';
+import UseAnimations from 'react-useanimations';
+import microphone from 'react-useanimations/lib/microphone';
+import { Button } from '@/components/ui/button';
+import { useVoiceRecording } from '@/hooks/useVoiceRecording';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { uploadAudioToS3 } from '@/lib/s3/upload';
+import { processVoiceCommand } from '@/lib/api/voice';
+
+interface VoiceInterfaceProps {
+  userProfile: any;
+  prompt: string;
+  onVoiceCommand: (command: string) => void;
+}
+
+export function VoiceInterface({ userProfile, prompt, onVoiceCommand }: VoiceInterfaceProps) {
+  const { data: session } = useSession();
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+
+  const { startRecording, stopRecording, audioBlob, isRecording } = useVoiceRecording();
+  const { socket, isConnected } = useWebSocket(session?.user?.id);
+
+  const processVoiceMutation = useMutation({
+    mutationFn: async (audioBlob: Blob) => {
+      // Upload audio to S3
+      const audioUrl = await uploadAudioToS3(audioBlob, session?.user?.id);
+
+      // Process voice command with user context
+      return processVoiceCommand({
+        audioUrl,
+        userProfile,
+        userId: session?.user?.id
+      });
+    },
+    onSuccess: (response) => {
+      setTranscript(response.transcript);
+      onVoiceCommand(response.command);
+    }
+  });
+
+  const handleVoiceInput = async () => {
+    if (isRecording) {
+      stopRecording();
+      if (audioBlob) {
+        processVoiceMutation.mutate(audioBlob);
+      }
+    } else {
+      startRecording();
+    }
+    setIsListening(!isListening);
+  };
+
+  return (
+    <div className="text-center space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4"
+      >
+        <h2 className="text-2xl font-semibold text-gray-800">
+          {prompt}
+        </h2>
+
+        <Button
+          onClick={handleVoiceInput}
+          size="lg"
+          className="w-20 h-20 rounded-full bg-orange-500 hover:bg-orange-600"
+          disabled={processVoiceMutation.isPending}
+        >
+          <UseAnimations
+            animation={microphone}
+            size={40}
+            style={{
+              color: 'white',
+              ...(isListening && { animation: 'pulse 1.5s infinite' })
+            }}
+          />
+        </Button>
+
+        {transcript && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 max-w-md mx-auto">
+            <p className="text-gray-700">"{transcript}"</p>
+          </div>
+        )}
+
+        {!isConnected && (
+          <p className="text-sm text-amber-600">
+            Connecting to voice processing...
+          </p>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+```
+
+### 4. Type Definitions with Zod
+
+#### Example: Food & User Types
+
+```typescript
+// src/types/food.ts
+import { z } from 'zod';
+
+export const UserPreferencesSchema = z.object({
+  cuisineTypes: z.array(z.string()),
+  dietaryRestrictions: z.array(z.enum(['halal', 'kosher', 'vegetarian', 'vegan', 'gluten-free'])),
+  priceRange: z.object({
+    min: z.number(),
+    max: z.number()
+  }),
+  spiceTolerance: z.number().min(1).max(5)
+});
+
+export const HealthProfileSchema = z.object({
+  allergies: z.array(z.string()),
+  conditions: z.array(z.enum(['diabetes', 'hypertension', 'heart-disease', 'other'])),
+  medications: z.array(z.string()).optional()
+});
+
+export const RestaurantSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  cuisine: z.string(),
+  rating: z.number().min(1).max(5),
+  healthSafetyRating: z.number().min(1).max(5),
+  allergenInfo: z.array(z.string()),
+  location: z.object({
+    lat: z.number(),
+    lng: z.number(),
+    address: z.string()
+  }),
+  priceRange: z.string(),
+  reviews: z.array(z.object({
+    rating: z.number(),
+    comment: z.string(),
+    date: z.string()
+  }))
+});
+
+export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
+export type HealthProfile = z.infer<typeof HealthProfileSchema>;
+export type Restaurant = z.infer<typeof RestaurantSchema>;
+```
+
+### 5. NextAuth Configuration
+
+#### Auth Setup
+
+```typescript
+// src/lib/auth.ts
+import NextAuth from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { verifyVoiceAuthentication } from '@/lib/voice/auth';
+import { getUserProfile } from '@/lib/api/profile';
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      id: 'voice-auth',
+      name: 'Voice Authentication',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        audioUrl: { label: 'Audio URL', type: 'text' },
+        challengeSentence: { label: 'Challenge Sentence', type: 'text' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.audioUrl) {
+          return null;
+        }
+
+        const isValidVoice = await verifyVoiceAuthentication({
+          email: credentials.email,
+          audioUrl: credentials.audioUrl,
+          challengeSentence: credentials.challengeSentence
+        });
+
+        if (isValidVoice) {
+          return {
+            id: credentials.email,
+            email: credentials.email,
+            name: 'Voice User'
+          };
+        }
+
+        return null;
+      }
+    })
+  ],
+  callbacks: {
+    async session({ session, token }) {
+      // Add user profile to session
+      if (session.user?.email) {
+        const userProfile = await getUserProfile(session.user.email);
+        session.user.profile = userProfile;
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      return token;
+    }
+  },
+  pages: {
+    signIn: '/auth/signin',
+    signUp: '/auth/signup',
+  }
+};
+
+export default NextAuth(authOptions);
+```
+
+### 6. Voice Processing & S3 Upload
+
+#### Voice Recording Hook
+
+```typescript
+// src/hooks/useVoiceRecording.ts
+"use client";
+
+import { useState, useRef, useCallback } from 'react';
+
+export function useVoiceRecording() {
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
+      });
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }, [isRecording]);
+
+  return {
+    startRecording,
+    stopRecording,
+    isRecording,
+    audioBlob
+  };
+}
+```
+
+#### S3 Upload Utility
+
+```typescript
+// src/lib/s3/upload.ts
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { v4 as uuidv4 } from 'uuid';
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION!,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
+  }
+});
+
+export async function uploadAudioToS3(audioBlob: Blob, userId: string): Promise<string> {
+  const fileName = `voice-recordings/${userId}/${uuidv4()}.webm`;
+  const buffer = Buffer.from(await audioBlob.arrayBuffer());
+
+  const command = new PutObjectCommand({
+    Bucket: process.env.AWS_S3_BUCKET!,
+    Key: fileName,
+    Body: buffer,
+    ContentType: 'audio/webm',
+    Metadata: {
+      userId,
+      timestamp: new Date().toISOString()
+    }
+  });
+
+  try {
+    await s3Client.send(command);
+    return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+  } catch (error) {
+    console.error('Error uploading to S3:', error);
+    throw new Error('Failed to upload audio file');
+  }
+}
+```
+
+### 7. WebSocket Setup
+
+#### WebSocket Hook
+
+```typescript
+// src/hooks/useWebSocket.ts
+"use client";
+
+import { useEffect, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
+
+export function useWebSocket(userId?: string) {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const socketInstance = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL!, {
+      auth: { userId },
+      transports: ['websocket']
+    });
+
+    socketInstance.on('connect', () => {
+      setIsConnected(true);
+    });
+
+    socketInstance.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    setSocket(socketInstance);
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, [userId]);
+
+  return { socket, isConnected };
+}
+```
+
+### 8. Theming with Chakra UI
+
+#### Theme Configuration
+
+```typescript
+// src/lib/theme/index.ts
+import { extendTheme } from '@chakra-ui/react';
+
+export const appTheme = extendTheme({
+  colors: {
+    primary: {
+      50: '#FFF5E6',
+      500: '#FF6B35',
+      600: '#E85A2A'
+    },
+    secondary: {
+      50: '#F0E6D2',
+      500: '#8B4513',
+      600: '#7A3F12'
+    },
+    accent: {
+      50: '#FFFACD',
+      500: '#FFD700',
+      600: '#DAA520'
+    }
+  },
+  fonts: {
+    heading: 'Poppins, sans-serif',
+    body: 'Inter, sans-serif'
+  },
+  components: {
+    Button: {
+      baseStyle: {
+        borderRadius: 'full',
+        fontWeight: '600'
+      }
+    }
+  }
+});
+```
+
+### 9. Agent Architecture
+
+#### Food Agent Implementation
+
+```typescript
+// src/agents/food/index.ts
+export class FoodAgent {
+  private userProfile: any;
+  private healthProfile: any;
+
+  constructor(userProfile: any, healthProfile: any) {
+    this.userProfile = userProfile;
+    this.healthProfile = healthProfile;
+  }
+
+  async processVoiceCommand(command: string, audioUrl: string) {
+    // Process voice command with user understanding
+    const intent = await this.extractIntent(command);
+
+    switch (intent.type) {
+      case 'find_food':
+        return await this.findRelevantFood(intent.parameters);
+      case 'order_food':
+        return await this.processOrder(intent.parameters);
+      case 'get_recommendations':
+        return await this.getPersonalizedRecommendations();
+      default:
+        return { error: 'Command not understood' };
+    }
+  }
+
+  private async findRelevantFood(parameters: any) {
+    // Implementation for finding relevant food
+    return {
+      restaurants: [],
+      matches: [],
+      healthCompatibility: {}
+    };
+  }
+
+  private async processOrder(parameters: any) {
+    // Implementation for processing food orders
+    return {
+      orderId: 'order_123',
+      estimatedTime: 30,
+      healthWarnings: []
+    };
+  }
+}
+```
+
+## Development Workflow
+
+1. **Create User Types First**: Define Zod schemas for user preferences and health profiles
+2. **Setup Agent Architecture**: Create specialized agents for different functionalities
+3. **Implement Voice Processing**: Setup audio recording, S3 upload, and voice recognition
+4. **Build Theming**: Setup Chakra UI themes for consistent styling
+5. **Create Page Structure**:
+   - Server component page with NextAuth session
+   - View in `src/modules/[module]/views/`
+   - Components in `src/modules/[module]/components/`
+6. **Add Voice Interactivity**: Mark components as `"use client"` for voice and audio features
+7. **Implement Real-time Features**: Add websocket connections for live updates
+8. **Test & Validate**: Ensure accessibility and health safety compliance
+
+## Security Guidelines
+
+- ✅ Use NextAuth for secure authentication
+- ✅ Implement voice biometric verification
+- ✅ Store audio files securely in S3 with proper access controls
+- ✅ Validate all voice inputs with Zod schemas
+- ✅ Use encrypted websocket connections
+- ✅ Implement proper CORS for API integrations
+- ❌ Never store raw voice data in local storage
+- ❌ Don't bypass health safety checks
+- ❌ Avoid exposing sensitive user data in client components
+
+## Accessibility Guidelines
+
+- ✅ Voice-first design with visual support
+- ✅ Screen reader compatibility throughout
+- ✅ High contrast options
+- ✅ Multi-language support
+- ✅ Respect dietary restrictions and preferences
+- ✅ Implement proper health safety verification
+- ❌ Don't assume user preferences without explicit consent
+- ❌ Avoid stereotypes in recommendations
+- ❌ Don't ignore health and safety requirements
+
+## Performance Guidelines
+
+- ✅ Optimize audio processing for real-time interactions
+- ✅ Use efficient S3 upload strategies
+- ✅ Implement content caching
+- ✅ Optimize voice recognition accuracy
+- ✅ Use websockets efficiently for real-time updates
+- ❌ Don't block UI during voice processing
+- ❌ Avoid unnecessary re-renders during audio recording
+- ❌ Don't load all themes simultaneously
+
+## Quick Reference Commands
+
+### Project Setup
+
+```bash
+# Install core dependencies
+bun add @chakra-ui/react @emotion/react @emotion/styled framer-motion
+bun add react-useanimations
+bun add next-auth
+bun add @tanstack/react-query @tanstack/react-query-devtools
+bun add axios zod
+bun add socket.io-client
+bun add @aws-sdk/client-s3
+bun add uuid
+
+# Install dev dependencies
+bun add -D @types/node @types/uuid
+```
+
+### File Creation Templates
+
+```bash
+# Create module structure
+mkdir -p src/modules/food/{components,views}
+mkdir -p src/modules/travel/{components,views}
+mkdir -p src/modules/community/{components,views}
+mkdir -p src/agents/{food,travel,social,auth,onboarding,context}
+
+# Create type definitions
+touch src/types/food.ts src/types/user.ts src/types/voice.ts
+```
+
+## Code Quality Guidelines
+
+- Always use TypeScript strict mode
+- Implement proper error boundaries for voice processing
+- Use semantic HTML elements
+- Ensure accessibility compliance (WCAG 2.1 AA)
+- Use meaningful commit messages following conventional commits
+- Test voice interactions across different accents and languages
+- Validate health safety in recommendations
+- Implement proper error handling for voice processing failures
+- Use consistent naming conventions:
+  - PascalCase for components
+  - camelCase for functions and variables
+  - UPPER_SNAKE_CASE for constants
+  - userProfile for user data objects
+  - voiceCommand for voice-related functions
