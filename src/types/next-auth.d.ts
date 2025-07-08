@@ -18,6 +18,7 @@ declare module 'next-auth' {
         conditions?: string[];
       };
     };
+    accessToken?: string;
   }
 
   interface User {
@@ -31,6 +32,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     isOnboarded: boolean;
+    accessToken?: string;
     preferences?: {
       dietaryRestrictions?: string[];
       spiceTolerance?: number;

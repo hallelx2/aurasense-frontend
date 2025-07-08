@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import { getSession } from 'next-auth/react';
 
 // Create base axios instance
@@ -11,11 +11,11 @@ export const apiClient = axios.create({
 
 // Request interceptor
 apiClient.interceptors.request.use(
-  async (config) => {
+  async (config: InternalAxiosRequestConfig) => {
     const session = await getSession();
 
     if (session?.accessToken) {
-      config.headers.Authorization = `Bearer ${session.accessToken}`;
+      config.headers.set('Authorization', `Bearer ${session.accessToken}`);
     }
 
     return config;
@@ -29,6 +29,11 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Handle 401 errors (unauthorized) here if needed
+    if (error.response?.status === 401) {
+      // Handle token refresh or redirect to login
+      console.warn('Unauthorized request:', error.config.url);
+    }
     return Promise.reject(error);
   }
 );
