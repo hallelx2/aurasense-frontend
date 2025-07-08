@@ -22,6 +22,30 @@
 14. [Future Vision](#future-vision)
 
 ---
+<div align="center">
+
+## 🚀 **Repository Links**
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/hallelx2/aurasense-frontend">
+        <img src="https://img.shields.io/badge/Frontend-Repository-FF6B35?style=for-the-badge&logo=github&logoColor=white" alt="Frontend Repository"/>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/hallelx2/aurasense-backend">
+        <img src="https://img.shields.io/badge/Backend-Repository-8B4513?style=for-the-badge&logo=github&logoColor=white" alt="Backend Repository"/>
+      </a>
+    </td>
+  </tr>
+</table>
+
+<div align="center">
+  <sub>✨ <strong>Voice-First Innovation</strong> • <strong>AI-Powered Agents</strong> • <strong>Universal Accessibility</strong> ✨</sub>
+</div>
+
+</div>
 
 ## Executive Summary
 
