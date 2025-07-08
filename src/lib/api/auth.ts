@@ -1,9 +1,9 @@
 import apiClient from './axios';
+import { AuthResponse } from '@/types/auth';
 
 export interface RegisterData {
   email: string;
   password: string;
-  name: string;
   username: string;
   first_name: string;
   last_name: string;
@@ -12,19 +12,6 @@ export interface RegisterData {
 export interface LoginData {
   email: string;
   password: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    username: string;
-    first_name: string;
-    last_name: string;
-    is_onboarded: boolean;
-  };
-  access_token: string;
 }
 
 export const authService = {
@@ -44,17 +31,17 @@ export const authService = {
   },
 
   async getProfile() {
-    const response = await apiClient.get('/auth/profile');
+    const response = await apiClient.get<AuthResponse>('/auth/profile');
     return response.data;
   },
 
   async updateProfile(data: Partial<RegisterData>) {
-    const response = await apiClient.patch('/auth/profile', data);
+    const response = await apiClient.patch<AuthResponse>('/auth/profile', data);
     return response.data;
   },
 
   async updateOnboardingStatus(isOnboarded: boolean) {
-    const response = await apiClient.patch('/auth/profile', { is_onboarded: isOnboarded });
+    const response = await apiClient.patch<AuthResponse>('/auth/profile', { isOnboarded });
     return response.data;
   }
 };

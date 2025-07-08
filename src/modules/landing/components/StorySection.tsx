@@ -8,13 +8,19 @@ import {
   Heading,
   useColorModeValue,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import { ReactNode } from 'react';
 
 const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
 const MotionHeading = motion(Heading);
 const MotionText = motion(Text);
+
+const cardTransition: Transition = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 20
+};
 
 interface StorySectionProps {
   id?: string;
@@ -49,7 +55,7 @@ export function StorySection({
         <MotionVStack
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={cardTransition}
           viewport={{ once: true }}
           spacing={4}
           textAlign="center"
@@ -81,7 +87,7 @@ export function StorySection({
         <MotionBox
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={cardTransition}
           viewport={{ once: true }}
         >
           {children}

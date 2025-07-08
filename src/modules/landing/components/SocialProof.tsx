@@ -16,7 +16,7 @@ import {
   Flex,
   Badge,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import {
   Quote,
   Star,
@@ -94,20 +94,26 @@ const stats = [
   }
 ];
 
+const cardTransition: Transition = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 20
+};
+
 export function SocialProof() {
   const bgColor = useColorModeValue('white', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
   const mutedColor = useColorModeValue('gray.600', 'gray.300');
 
   return (
-    <Box bg={bgColor} py={20}>
+    <Box id="social-proof" bg={bgColor} py={20}>
       <Container maxW="container.xl">
         <VStack spacing={16}>
           {/* Stats Section */}
           <MotionVStack
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             spacing={8}
             textAlign="center"
@@ -133,13 +139,19 @@ export function SocialProof() {
                   key={stat.label}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  transition={{
+                    ...cardTransition,
+                    delay: index * 0.1
+                  }}
                   viewport={{ once: true }}
                   textAlign="center"
                   bg="gray.50"
                   borderRadius="xl"
-                  _hover={{ transform: 'translateY(-4px)' }}
-                  transition="all 0.3s ease"
+                  whileHover={{
+                    y: -4,
+                    transition: cardTransition
+                  }}
+                  style={{ transition: 'all 0.3s ease' }}
                 >
                   <CardBody p={8}>
                     <VStack spacing={4}>
@@ -166,7 +178,7 @@ export function SocialProof() {
           <MotionVStack
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             spacing={8}
             textAlign="center"
@@ -197,17 +209,21 @@ export function SocialProof() {
                   key={testimonial.name}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.2 }}
+                  transition={{
+                    ...cardTransition,
+                    delay: index * 0.1
+                  }}
                   viewport={{ once: true }}
                   bg="white"
                   boxShadow="xl"
                   borderRadius="2xl"
                   overflow="hidden"
-                  _hover={{
-                    transform: 'translateY(-4px)',
-                    boxShadow: '2xl'
+                  whileHover={{
+                    y: -4,
+                    boxShadow: '2xl',
+                    transition: cardTransition
                   }}
-                  transition="all 0.3s ease"
+                  style={{ transition: 'all 0.3s ease' }}
                   border="1px"
                   borderColor="gray.100"
                   position="relative"

@@ -173,8 +173,8 @@ export default function SignupView() {
               </Text>
             </VStack>
           </CardHeader>
-          <CardBody pt={4}>
-            <Box as="form" onSubmit={handleSubmit}>
+          <Box as="form" onSubmit={handleSubmit}>
+            <CardBody pt={4}>
               <VStack spacing={5}>
                 <HStack spacing={4} w="full">
                   <FormControl isRequired isInvalid={!!errors.firstName}>
@@ -229,7 +229,7 @@ export default function SignupView() {
                     <Input
                       name="password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Create a password"
+                      placeholder="Create a strong password"
                       value={form.password}
                       onChange={handleChange}
                       autoComplete="new-password"
@@ -252,25 +252,29 @@ export default function SignupView() {
                   size="lg"
                   w="full"
                   isLoading={loading}
-                  loadingText="Creating account..."
-                  variant="solid"
-                  fontWeight="bold"
-                  fontSize="lg"
-                  mt={2}
-                  boxShadow="0 4px 24px rgba(255,107,53,0.10)"
+                  colorScheme="primary"
+                  loadingText="Creating Account..."
                 >
-                  Sign Up
+                  Create Account
                 </Button>
               </VStack>
-            </Box>
-          </CardBody>
-          <CardFooter justifyContent="center" pt={0}>
-            <Text color="gray.500" fontSize="sm">
-              Already have an account?{' '}
-              <Link as={NextLink} href="/auth/signin" color="primary.500" fontWeight="bold">
-                Log in
-              </Link>
-            </Text>
+            </CardBody>
+          </Box>
+          <CardFooter pt={0}>
+            <VStack w="full" spacing={4}>
+              <Text color="gray.500">
+                Already have an account?{' '}
+                <Link
+                  as={NextLink}
+                  href="/auth/signin"
+                  color="primary.500"
+                  fontWeight="medium"
+                  _hover={{ color: 'primary.600', textDecoration: 'none' }}
+                >
+                  Sign in
+                </Link>
+              </Text>
+            </VStack>
           </CardFooter>
         </MotionCard>
       </Container>

@@ -12,7 +12,7 @@ import {
   Center,
   Icon,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import { ArrowRight, Volume2, Mic } from 'lucide-react';
 import UseAnimations from 'react-useanimations';
 import microphone from 'react-useanimations/lib/microphone';
@@ -22,91 +22,62 @@ const MotionVStack = motion(VStack);
 const MotionHeading = motion(Heading);
 const MotionText = motion(Text);
 
+const cardTransition: Transition = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 20
+};
+
 interface CallToActionProps {
   onGetStarted: () => void;
 }
 
 export function CallToAction({ onGetStarted }: CallToActionProps) {
-  const bgGradient = useColorModeValue(
-    'linear(to-r, primary.500, secondary.500)',
-    'linear(to-r, primary.600, secondary.600)'
-  );
-  const textColor = 'white';
+  const textColor = useColorModeValue('gray.800', 'white');
+  const mutedColor = useColorModeValue('gray.600', 'gray.300');
 
   return (
-    <Box
-      bgGradient={bgGradient}
-      py={20}
-      position="relative"
-      overflow="hidden"
-    >
+    <Box id="cta" bg="primary.500" py={20} position="relative" overflow="hidden">
       <Container maxW="container.xl">
         <MotionVStack
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={cardTransition}
           viewport={{ once: true }}
-          spacing={8}
-          textAlign="center"
+          spacing={4}
         >
-          <MotionBox
-            initial={{ scale: 0.8, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
+          <MotionHeading
+            as="h2"
+            fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
+            fontWeight="bold"
+            color={textColor}
+            lineHeight="shorter"
+            maxW="4xl"
           >
-            <Center
-              w={20}
-              h={20}
-              bg="white"
-              borderRadius="full"
-              boxShadow="0 10px 30px rgba(0, 0, 0, 0.2)"
-              mb={4}
-            >
-              <UseAnimations
-                animation={microphone}
-                size={48}
-                style={{ color: '#FF6B35' }}
-              />
-            </Center>
-          </MotionBox>
+            Ready to Transform Your Lifestyle?
+          </MotionHeading>
 
-          <MotionVStack
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            viewport={{ once: true }}
-            spacing={4}
+          <MotionText
+            fontSize={{ base: 'lg', md: 'xl' }}
+            color="whiteAlpha.900"
+            maxW="3xl"
+            lineHeight="tall"
           >
-            <MotionHeading
-              as="h2"
-              fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
-              fontWeight="bold"
-              color={textColor}
-              lineHeight="shorter"
-              maxW="4xl"
-            >
-              Ready to Transform Your Lifestyle?
-            </MotionHeading>
+            Join thousands of users who've discovered the power of voice-first technology.
+            Your journey to accessible, health-aware lifestyle choices starts now.
+          </MotionText>
+        </MotionVStack>
 
-            <MotionText
-              fontSize={{ base: 'lg', md: 'xl' }}
-              color="whiteAlpha.900"
-              maxW="3xl"
-              lineHeight="tall"
-            >
-              Join thousands of users who've discovered the power of voice-first technology.
-              Your journey to accessible, health-aware lifestyle choices starts now.
-            </MotionText>
-          </MotionVStack>
-
-          <MotionVStack
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            viewport={{ once: true }}
-            spacing={4}
-          >
+        <MotionVStack
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{
+            ...cardTransition,
+            delay: 0.2
+          }}
+          viewport={{ once: true }}
+          spacing={4}
+        >
             <Button
               size="xl"
               bg="white"
@@ -142,7 +113,6 @@ export function CallToAction({ onGetStarted }: CallToActionProps) {
               <Text>•</Text>
               <Text>Privacy-First</Text>
             </HStack>
-          </MotionVStack>
         </MotionVStack>
       </Container>
 

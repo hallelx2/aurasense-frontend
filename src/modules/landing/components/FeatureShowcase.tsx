@@ -15,7 +15,7 @@ import {
   Badge,
   Flex,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import {
   Mic,
   Heart,
@@ -38,6 +38,12 @@ import activity from 'react-useanimations/lib/activity';
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 const MotionVStack = motion(VStack);
+
+const cardTransition: Transition = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 20
+};
 
 const features = [
   {
@@ -121,7 +127,7 @@ export function FeatureShowcase() {
           <MotionVStack
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             spacing={4}
             textAlign="center"
@@ -151,13 +157,16 @@ export function FeatureShowcase() {
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                _hover={{
-                  transform: 'translateY(-4px)',
-                  boxShadow: 'xl'
+                transition={{
+                  ...cardTransition,
+                  delay: index * 0.1
                 }}
-                transition="all 0.3s ease"
+                viewport={{ once: true }}
+                whileHover={{
+                  y: -4,
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  transition: cardTransition
+                }}
               >
                 <CardBody p={6}>
                   <VStack spacing={4} align="start">
@@ -204,15 +213,15 @@ export function FeatureShowcase() {
           <MotionVStack
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             spacing={4}
             textAlign="center"
-            mt={16}
+            pt={16}
           >
             <Heading
-              as="h3"
-              fontSize={{ base: '2xl', md: '3xl', lg: '4xl' }}
+              as="h2"
+              fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
               fontWeight="bold"
               color={textColor}
               lineHeight="shorter"
@@ -225,7 +234,7 @@ export function FeatureShowcase() {
               maxW="3xl"
               lineHeight="tall"
             >
-              Specialized AI agents that understand your unique needs and preferences.
+              Specialized AI agents working together to enhance your lifestyle experience.
             </Text>
           </MotionVStack>
 
@@ -235,22 +244,24 @@ export function FeatureShowcase() {
                 key={agent.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                bg="white"
-                _hover={{
-                  transform: 'translateY(-2px)',
-                  boxShadow: 'lg'
+                transition={{
+                  ...cardTransition,
+                  delay: index * 0.1
                 }}
-                transition="all 0.3s ease"
+                viewport={{ once: true }}
+                whileHover={{
+                  y: -4,
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  transition: cardTransition
+                }}
               >
-                <CardBody p={6} textAlign="center">
-                  <VStack spacing={4}>
+                <CardBody p={6}>
+                  <VStack spacing={4} align="start">
                     <Box
-                      w={16}
-                      h={16}
+                      w={12}
+                      h={12}
                       bg={`${agent.color.split('.')[0]}.50`}
-                      borderRadius="full"
+                      borderRadius="xl"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
@@ -258,7 +269,7 @@ export function FeatureShowcase() {
                       <Icon as={agent.icon} boxSize={8} color={agent.color} />
                     </Box>
 
-                    <VStack spacing={2}>
+                    <VStack spacing={2} align="start">
                       <Text fontSize="xl" fontWeight="bold" color={textColor}>
                         {agent.title}
                       </Text>

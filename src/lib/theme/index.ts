@@ -5,8 +5,34 @@ const config: ThemeConfig = {
   useSystemColorMode: true,
 };
 
+// Custom keyframes for voice animations
+const keyframes = {
+  pulse: {
+    '0%': { transform: 'scale(1)', opacity: 1 },
+    '50%': { transform: 'scale(1.1)', opacity: 0.8 },
+    '100%': { transform: 'scale(1)', opacity: 1 }
+  },
+  wave: {
+    '0%': { transform: 'scaleY(1)' },
+    '50%': { transform: 'scaleY(0.5)' },
+    '100%': { transform: 'scaleY(1)' }
+  },
+  fadeIn: {
+    '0%': { opacity: 0, transform: 'translateY(10px)' },
+    '100%': { opacity: 1, transform: 'translateY(0)' }
+  }
+};
+
 export const aurasenseTheme = extendTheme({
   config,
+  styles: {
+    global: {
+      body: {
+        bg: 'gray.50',
+        color: 'gray.900'
+      }
+    }
+  },
   colors: {
     primary: {
       50: '#FFF5E6',
@@ -200,69 +226,131 @@ export const aurasenseTheme = extendTheme({
             transform: 'translateY(-2px)',
           },
         },
-      },
-    },
-    Modal: {
-      baseStyle: {
-        dialog: {
-          borderRadius: 'xl',
-          boxShadow: 'xl',
+        header: {
+          p: 6,
+          borderBottomWidth: '1px',
         },
-        overlay: {
-          backdropFilter: 'blur(4px)',
-        },
-      },
-    },
-    Toast: {
-      baseStyle: {
-        borderRadius: 'lg',
-        fontWeight: '500',
-      },
-    },
-    Progress: {
-      baseStyle: {
-        track: {
-          borderRadius: 'full',
-        },
-        filledTrack: {
-          borderRadius: 'full',
-        },
-      },
-    },
-  },
-  styles: {
-    global: {
-      body: {
-        bg: 'gray.50',
-        color: 'gray.800',
-      },
-      '*': {
-        _focus: {
-          outline: '2px solid',
-          outlineColor: 'primary.500',
-          outlineOffset: '2px',
-        },
-        _focusVisible: {
-          outline: '2px solid',
-          outlineColor: 'primary.500',
-          outlineOffset: '2px',
-        },
-      },
-      // High contrast mode support
-      '@media (prefers-contrast: high)': {
         body: {
+          p: 6,
+        },
+        footer: {
+          p: 6,
+          borderTopWidth: '1px',
+        },
+      },
+      variants: {
+        elevated: {
+          container: {
+            bg: 'white',
+            boxShadow: 'lg',
+          },
+        },
+        outline: {
+          container: {
+            borderWidth: '1px',
+          },
+        },
+      },
+    },
+    VoiceIndicator: {
+      baseStyle: {
+        container: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 'full',
+          transition: 'all 0.2s',
+        },
+        dot: {
+          width: '12px',
+          height: '12px',
+          borderRadius: 'full',
+          margin: '2px',
+          animation: 'wave 1s infinite',
+        },
+      },
+      variants: {
+        listening: {
+          dot: {
+            bg: 'voice.listening',
+          },
+        },
+        processing: {
+          dot: {
+            bg: 'voice.processing',
+          },
+        },
+        speaking: {
+          dot: {
+            bg: 'voice.speaking',
+          },
+        },
+      },
+    },
+    VoiceTranscript: {
+      baseStyle: {
+        container: {
           bg: 'white',
-          color: 'black',
+          borderRadius: 'xl',
+          p: 4,
+          boxShadow: 'sm',
+          maxW: '600px',
+          mx: 'auto',
+          animation: 'fadeIn 0.3s ease-out',
+        },
+        text: {
+          fontSize: 'lg',
+          color: 'gray.700',
+          textAlign: 'center',
+        },
+      },
+    },
+    VoicePrompt: {
+      baseStyle: {
+        container: {
+          textAlign: 'center',
+          mb: 8,
+        },
+        text: {
+          fontSize: '2xl',
+          fontWeight: 'medium',
+          color: 'gray.800',
+          animation: 'fadeIn 0.5s ease-out',
         },
       },
     },
   },
-  semanticTokens: {
-    colors: {
-      error: 'health.error',
-      success: 'health.success',
-      warning: 'health.warning',
-      info: 'health.info',
+  layerStyles: {
+    voiceContainer: {
+      bg: 'white',
+      borderRadius: 'xl',
+      p: 6,
+      boxShadow: 'lg',
+      maxW: '600px',
+      mx: 'auto',
+      textAlign: 'center',
     },
+    gradientBg: {
+      bgGradient: 'linear(to-b, primary.50, secondary.50)',
+      minH: '100vh',
+    },
+  },
+  textStyles: {
+    voicePrompt: {
+      fontSize: ['xl', '2xl'],
+      fontWeight: 'medium',
+      color: 'gray.800',
+      lineHeight: 'tall',
+    },
+    voiceTranscript: {
+      fontSize: ['md', 'lg'],
+      color: 'gray.700',
+      fontStyle: 'italic',
+    },
+  },
+  animations: {
+    pulse: `${keyframes.pulse} 1.5s infinite`,
+    wave: `${keyframes.wave} 1s infinite`,
+    fadeIn: `${keyframes.fadeIn} 0.3s ease-out`,
   },
 });

@@ -16,7 +16,7 @@ import {
   Avatar,
   Flex,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import {
   Clock,
   MapPin,
@@ -30,6 +30,12 @@ import {
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 const MotionVStack = motion(VStack);
+
+const cardTransition: Transition = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 20
+};
 
 const scenarios = [
   {
@@ -83,7 +89,7 @@ export function ScenarioShowcase() {
           <MotionVStack
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             spacing={4}
             textAlign="center"
@@ -116,7 +122,10 @@ export function ScenarioShowcase() {
                 key={scenario.persona}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
+                transition={{
+                  ...cardTransition,
+                  delay: index * 0.2
+                }}
                 viewport={{ once: true }}
                 bg="white"
                 boxShadow="xl"
@@ -126,7 +135,7 @@ export function ScenarioShowcase() {
                   transform: 'translateY(-8px)',
                   boxShadow: '2xl'
                 }}
-                transition="all 0.3s ease"
+                style={{ transition: 'all 0.3s ease' }}
                 border="1px"
                 borderColor="gray.100"
               >
@@ -232,7 +241,7 @@ export function ScenarioShowcase() {
           <MotionBox
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             textAlign="center"
           >

@@ -1,11 +1,24 @@
 'use client';
 
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { SessionProvider } from 'next-auth/react';
-import { useState } from 'react';
 import { aurasenseTheme } from './theme';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      gcTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+      retry: 1
+    },
+    mutations: {
+      retry: 1
+    }
+  }
+});
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -13,29 +26,17 @@ interface ProvidersProps {
 }
 
 export function Providers({ children, session }: ProvidersProps) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            // With SSR, we usually want to set some default staleTime
-            // above 0 to avoid refetching immediately on the client
-            staleTime: 60 * 1000,
-            refetchOnWindowFocus: false,
-            retry: 1,
-          },
-        },
-      })
-  );
-
   return (
-    <SessionProvider session={session}>
-      <QueryClientProvider client={queryClient}>
-        <ChakraProvider theme={aurasenseTheme}>
-          {children}
+    <>
+      <ColorModeScript initialColorMode={aurasenseTheme.config.initialColorMode} />
+      <SessionProvider session={session}>
+        <QueryClientProvider client={queryClient}>
+          <ChakraProvider theme={aurasenseTheme}>
+            {children}
+          </ChakraProvider>
           <ReactQueryDevtools initialIsOpen={false} />
-        </ChakraProvider>
-      </QueryClientProvider>
-    </SessionProvider>
+        </QueryClientProvider>
+      </SessionProvider>
+    </>
   );
 }

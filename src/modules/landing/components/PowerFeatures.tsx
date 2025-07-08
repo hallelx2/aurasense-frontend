@@ -16,7 +16,7 @@ import {
   Flex,
   Center,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import {
   Shield,
   Zap,
@@ -36,6 +36,12 @@ import activity from 'react-useanimations/lib/activity';
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 const MotionVStack = motion(VStack);
+
+const cardTransition: Transition = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 20
+};
 
 const powerFeatures = [
   {
@@ -98,22 +104,19 @@ const trustFeatures = [
 ];
 
 export function PowerFeatures() {
-  const bgGradient = useColorModeValue(
-    'linear(to-br, gray.50, primary.50)',
-    'linear(to-br, gray.900, primary.900)'
-  );
+  const bgColor = useColorModeValue('gray.50', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
   const mutedColor = useColorModeValue('gray.600', 'gray.300');
 
   return (
-    <Box bg={bgGradient} py={24}>
+    <Box id="power-features" bg={bgColor} py={20}>
       <Container maxW="container.xl">
         <VStack spacing={16}>
           {/* Section Header */}
           <MotionVStack
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             spacing={4}
             textAlign="center"
@@ -147,17 +150,21 @@ export function PowerFeatures() {
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
+                transition={{
+                  ...cardTransition,
+                  delay: index * 0.2
+                }}
                 viewport={{ once: true }}
+                whileHover={{
+                  y: -4,
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                  transition: cardTransition
+                }}
+                style={{ transition: 'all 0.3s ease' }}
                 bg="white"
                 boxShadow="xl"
                 borderRadius="2xl"
                 overflow="hidden"
-                _hover={{
-                  transform: 'translateY(-8px)',
-                  boxShadow: '2xl'
-                }}
-                transition="all 0.3s ease"
                 border="1px"
                 borderColor="gray.100"
                 h="full"
@@ -198,108 +205,88 @@ export function PowerFeatures() {
                         </Text>
                       </VStack>
 
-                      {/* Benefits */}
+                      {/* Benefits List */}
                       <VStack spacing={2} align="start" w="full">
                         {feature.benefits.map((benefit) => (
-                          <HStack key={benefit} spacing={3}>
-                            <Icon as={Heart} boxSize={4} color={feature.color} />
-                            <Text fontSize="sm" color="gray.600">
-                              {benefit}
-                            </Text>
+                          <HStack key={benefit} spacing={2}>
+                            <Icon as={Zap} boxSize={4} color={feature.color} />
+                            <Text color="gray.700">{benefit}</Text>
                           </HStack>
                         ))}
                       </VStack>
-                    </VStack>
 
-                    {/* Stat */}
-                    <Box
-                      bg={`${feature.color.split('.')[0]}.50`}
-                      px={4}
-                      py={3}
-                      borderRadius="lg"
-                      w="full"
-                      textAlign="center"
-                    >
-                      <Text fontSize="lg" fontWeight="bold" color={feature.color}>
-                        {feature.stat}
-                      </Text>
-                    </Box>
+                      {/* Stats */}
+                      <Box
+                        mt="auto"
+                        pt={4}
+                        borderTop="1px"
+                        borderColor="gray.100"
+                        w="full"
+                      >
+                        <Text
+                          fontSize="sm"
+                          fontWeight="semibold"
+                          color={feature.color}
+                        >
+                          {feature.stat}
+                        </Text>
+                      </Box>
+                    </VStack>
                   </VStack>
                 </CardBody>
               </MotionCard>
             ))}
           </SimpleGrid>
 
-          {/* Trust Features Grid */}
-          <MotionBox
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            viewport={{ once: true }}
-            w="full"
-          >
-            <VStack spacing={8}>
-              <Heading
-                as="h3"
-                fontSize={{ base: '2xl', md: '3xl' }}
-                fontWeight="bold"
-                color={textColor}
-                textAlign="center"
+          {/* Trust Features */}
+          <SimpleGrid columns={{ base: 2, md: 4 }} spacing={8} w="full">
+            {trustFeatures.map((feature, index) => (
+              <MotionCard
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{
+                  ...cardTransition,
+                  delay: index * 0.1
+                }}
+                viewport={{ once: true }}
+                whileHover={{
+                  y: -4,
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                  transition: cardTransition
+                }}
+                style={{ transition: 'all 0.3s ease' }}
+                bg="white"
+                boxShadow="lg"
+                borderRadius="xl"
+                overflow="hidden"
+                border="1px"
+                borderColor="gray.100"
               >
-                Built on Trust
-              </Heading>
+                <CardBody p={6}>
+                  <VStack spacing={4} align="start">
+                    <Center
+                      w={12}
+                      h={12}
+                      bg={`${feature.color.split('.')[0]}.50`}
+                      borderRadius="lg"
+                    >
+                      <Icon as={feature.icon} boxSize={6} color={feature.color} />
+                    </Center>
 
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} w="full">
-                {trustFeatures.map((feature, index) => (
-                  <Card
-                    key={feature.title}
-                    bg="white"
-                    borderRadius="xl"
-                    boxShadow="md"
-                    _hover={{ boxShadow: 'lg' }}
-                    transition="all 0.2s ease"
-                  >
-                    <CardBody p={6} textAlign="center">
-                      <VStack spacing={4}>
-                        <Icon as={feature.icon} boxSize={8} color={feature.color} />
-                        <VStack spacing={2}>
-                          <Text fontSize="md" fontWeight="semibold" color="gray.800">
-                            {feature.title}
-                          </Text>
-                          <Text fontSize="sm" color="gray.600" lineHeight="tall">
-                            {feature.description}
-                          </Text>
-                        </VStack>
-                      </VStack>
-                    </CardBody>
-                  </Card>
-                ))}
-              </SimpleGrid>
-            </VStack>
-          </MotionBox>
-
-          {/* Bottom CTA */}
-          <MotionBox
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            viewport={{ once: true }}
-            bg="primary.500"
-            p={8}
-            borderRadius="2xl"
-            textAlign="center"
-            w="full"
-            color="white"
-          >
-            <VStack spacing={4}>
-              <Text fontSize="2xl" fontWeight="bold">
-                Ready to Experience the Difference?
-              </Text>
-              <Text fontSize="lg" opacity={0.9} maxW="2xl">
-                Join the community of users who've discovered what accessible, health-aware technology can do.
-              </Text>
-            </VStack>
-          </MotionBox>
+                    <VStack spacing={2} align="start">
+                      <Text fontSize="lg" fontWeight="bold" color="gray.800">
+                        {feature.title}
+                      </Text>
+                      <Text color="gray.600" fontSize="sm" lineHeight="tall">
+                        {feature.description}
+                      </Text>
+                    </VStack>
+                  </VStack>
+                </CardBody>
+              </MotionCard>
+            ))}
+          </SimpleGrid>
         </VStack>
       </Container>
     </Box>

@@ -10,13 +10,30 @@ export const SignupSchema = z.object({
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
 });
 
 export const LoginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password is required'),
+  password: z.string().min(8, 'Password is required')
+});
+
+export const AuthResponseSchema = z.object({
+  status: z.literal('success'),
+  message: z.string(),
+  data: z.object({
+    user: z.object({
+      uid: z.string(),
+      email: z.string().email(),
+      first_name: z.string(),
+      last_name: z.string(),
+      username: z.string(),
+      isOnboarded: z.boolean()
+    }),
+    access_token: z.string()
+  })
 });
 
 export type SignupInput = z.infer<typeof SignupSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
+export type AuthResponse = z.infer<typeof AuthResponseSchema>;

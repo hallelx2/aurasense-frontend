@@ -16,7 +16,7 @@ import {
   Flex,
   Center,
 } from '@chakra-ui/react';
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import {
   Mic,
   Brain,
@@ -34,6 +34,12 @@ import activity from 'react-useanimations/lib/activity';
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 const MotionVStack = motion(VStack);
+
+const cardTransition: Transition = {
+  type: 'spring',
+  stiffness: 200,
+  damping: 20
+};
 
 const steps = [
   {
@@ -73,22 +79,19 @@ const steps = [
 ];
 
 export function HowItWorks() {
-  const bgGradient = useColorModeValue(
-    'linear(to-br, gray.50, primary.50)',
-    'linear(to-br, gray.900, primary.900)'
-  );
+  const bgColor = useColorModeValue('white', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
   const mutedColor = useColorModeValue('gray.600', 'gray.300');
 
   return (
-    <Box bg={bgGradient} py={24}>
+    <Box id="how-it-works" bg={bgColor} py={20}>
       <Container maxW="container.xl">
         <VStack spacing={16}>
           {/* Section Header */}
           <MotionVStack
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             spacing={4}
             textAlign="center"
@@ -119,7 +122,10 @@ export function HowItWorks() {
                 key={step.number}
                 initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
+                transition={{
+                  ...cardTransition,
+                  delay: index * 0.2
+                }}
                 viewport={{ once: true }}
                 w="full"
               >
@@ -242,7 +248,7 @@ export function HowItWorks() {
           <MotionBox
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={cardTransition}
             viewport={{ once: true }}
             w="full"
           >

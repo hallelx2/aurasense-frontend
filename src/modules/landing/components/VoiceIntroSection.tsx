@@ -215,25 +215,18 @@ export function VoiceIntroSection({ onGetStarted, onLearnMore }: VoiceIntroSecti
       </Container>
 
       {/* Background Elements */}
-      <Box
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        zIndex={-1}
-        opacity={0.1}
-      >
+      <Box position="relative" w="full" h="full">
         <Box
           position="absolute"
-          top="20%"
-          left="10%"
-          w="300px"
-          h="300px"
+          top="10%"
+          left="5%"
+          w="200px"
+          h="200px"
           bg="primary.400"
           borderRadius="full"
           filter="blur(80px)"
           animation="pulse-slow"
+          style={{ animationDelay: '0.5s' }}
         />
         <Box
           position="absolute"
@@ -245,7 +238,7 @@ export function VoiceIntroSection({ onGetStarted, onLearnMore }: VoiceIntroSecti
           borderRadius="full"
           filter="blur(80px)"
           animation="pulse-slow"
-          animationDelay="1s"
+          style={{ animationDelay: '1s' }}
         />
       </Box>
     </Box>

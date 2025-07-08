@@ -15,6 +15,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
+import { keyframes } from '@emotion/react';
 import { ArrowRight, Volume2, Heart, Zap, Users } from 'lucide-react';
 import { useState } from 'react';
 import UseAnimations from 'react-useanimations';
@@ -25,6 +26,12 @@ const MotionBox = motion(Box);
 const MotionVStack = motion(VStack);
 const MotionHeading = motion(Heading);
 const MotionText = motion(Text);
+
+const pulseSlow = keyframes`
+  0% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 0.6; }
+`;
 
 interface HeroSectionProps {
   onGetStarted: () => void;
@@ -321,7 +328,7 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
           bg="primary.300"
           borderRadius="full"
           filter="blur(100px)"
-          animation="pulse-slow"
+          animation={`${pulseSlow} 4s ease-in-out infinite`}
         />
         <Box
           position="absolute"
@@ -332,8 +339,8 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
           bg="secondary.300"
           borderRadius="full"
           filter="blur(80px)"
-          animation="pulse-slow"
-          animationDelay="2s"
+          animation={`${pulseSlow} 4s ease-in-out infinite`}
+          style={{ animationDelay: '2s' }}
         />
         <Box
           position="absolute"
@@ -345,8 +352,8 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
           bg="fresh.300"
           borderRadius="full"
           filter="blur(60px)"
-          animation="pulse-slow"
-          animationDelay="4s"
+          animation={`${pulseSlow} 4s ease-in-out infinite`}
+          style={{ animationDelay: '4s' }}
         />
       </Box>
     </Box>

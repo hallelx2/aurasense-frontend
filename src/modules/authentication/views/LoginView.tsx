@@ -155,67 +155,82 @@ export default function LoginView() {
               </Text>
             </VStack>
           </CardHeader>
-          <CardBody as="form" onSubmit={handleSubmit} pt={4}>
-            <VStack spacing={5}>
-              <FormControl isRequired isInvalid={!!errors.email}>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="you@email.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  autoComplete="email"
-                />
-                <FormErrorMessage>{errors.email}</FormErrorMessage>
-              </FormControl>
-              <FormControl isRequired isInvalid={!!errors.password}>
-                <FormLabel>Password</FormLabel>
-                <InputGroup>
+          <Box as="form" onSubmit={handleSubmit}>
+            <CardBody pt={4}>
+              <VStack spacing={5}>
+                <FormControl isRequired isInvalid={!!errors.email}>
+                  <FormLabel>Email</FormLabel>
                   <Input
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={form.password}
+                    name="email"
+                    type="email"
+                    placeholder="you@email.com"
+                    value={form.email}
                     onChange={handleChange}
-                    autoComplete="current-password"
+                    autoComplete="email"
                   />
-                  <InputRightElement>
-                    <IconButton
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      icon={showPassword ? <EyeOff /> : <Eye />}
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setShowPassword((v) => !v)}
-                      tabIndex={-1}
+                  <FormErrorMessage>{errors.email}</FormErrorMessage>
+                </FormControl>
+                <FormControl isRequired isInvalid={!!errors.password}>
+                  <FormLabel>Password</FormLabel>
+                  <InputGroup>
+                    <Input
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      value={form.password}
+                      onChange={handleChange}
+                      autoComplete="current-password"
                     />
-                  </InputRightElement>
-                </InputGroup>
-                <FormErrorMessage>{errors.password}</FormErrorMessage>
-              </FormControl>
-              <Button
-                type="submit"
-                size="lg"
-                w="full"
-                isLoading={loading}
-                loadingText="Logging in..."
-                variant="solid"
-                fontWeight="bold"
-                fontSize="lg"
-                mt={2}
-                boxShadow="0 4px 24px rgba(255,107,53,0.10)"
+                    <InputRightElement>
+                      <IconButton
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        icon={showPassword ? <EyeOff /> : <Eye />}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setShowPassword((v) => !v)}
+                        tabIndex={-1}
+                      />
+                    </InputRightElement>
+                  </InputGroup>
+                  <FormErrorMessage>{errors.password}</FormErrorMessage>
+                </FormControl>
+                <Button
+                  type="submit"
+                  size="lg"
+                  w="full"
+                  isLoading={loading}
+                  colorScheme="primary"
+                  loadingText="Signing in..."
+                >
+                  Sign In
+                </Button>
+              </VStack>
+            </CardBody>
+          </Box>
+          <CardFooter pt={0}>
+            <VStack w="full" spacing={4}>
+              <Link
+                as={NextLink}
+                href="/auth/forgot-password"
+                color="primary.500"
+                fontWeight="medium"
+                _hover={{ color: 'primary.600', textDecoration: 'none' }}
               >
-                Log In
-              </Button>
-            </VStack>
-          </CardBody>
-          <CardFooter justifyContent="center" pt={0}>
-            <Text color="gray.500" fontSize="sm">
-              New to Aurasense?{' '}
-              <Link as={NextLink} href="/auth/signup" color="primary.500" fontWeight="bold">
-                Create an account
+                Forgot your password?
               </Link>
-            </Text>
+              <Text color="gray.500">
+                Don't have an account?{' '}
+                <Link
+                  as={NextLink}
+                  href="/auth/signup"
+                  color="primary.500"
+                  fontWeight="medium"
+                  _hover={{ color: 'primary.600', textDecoration: 'none' }}
+                >
+                  Sign up
+                </Link>
+              </Text>
+            </VStack>
           </CardFooter>
         </MotionCard>
       </Container>
