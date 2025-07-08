@@ -191,9 +191,33 @@ export function useVoiceRecording(options: VoiceRecordingOptions = {}) {
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && state.isRecording) {
-      mediaRecorderRef.current.stop();
+      try {
+        // Request final data
+        mediaRecorderRef.current.requestData();
+
+        // Stop the recorder
+        mediaRecorderRef.current.stop();
+
+        // Create blob immediately from chunks
+        const blob = new Blob(audioChunksRef.current, {
+          type: 'audio/webm;codecs=opus'
+        });
+        setAudioBlob(blob);
+
+        // Reset state
+        setState(prev => ({
+          ...prev,
+          isRecording: false,
+          isPaused: false,
+          duration: 0,
+          volume: 0
+        }));
+      } catch (error) {
+        console.error('Error stopping recording:', error);
+        handleError(error instanceof Error ? error : new Error('Failed to stop recording'));
+      }
     }
-  }, [state.isRecording]);
+  }, [state.isRecording, handleError]);
 
   const resetRecording = useCallback(() => {
     setAudioBlob(null);

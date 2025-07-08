@@ -42,7 +42,7 @@ export function SessionModal({ isOpen, onClose, onSessionCreate }: SessionModalP
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
-          <Text>Start New Session</Text>
+            <Text>Start New Session</Text>
           <Badge colorScheme="primary" ml={2}>WITH CHEF</Badge>
         </ModalHeader>
         <ModalCloseButton />
@@ -81,15 +81,15 @@ export function SessionModal({ isOpen, onClose, onSessionCreate }: SessionModalP
                 />
               </FormControl>
 
-              <Button
-                colorScheme="primary"
+            <Button
+              colorScheme="primary"
                 type="submit"
                 width="full"
                 size="lg"
                 mt={4}
-              >
-                Create Session
-              </Button>
+            >
+              Create Session
+            </Button>
             </VStack>
           </form>
         </ModalBody>

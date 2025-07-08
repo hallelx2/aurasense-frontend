@@ -45,17 +45,17 @@ export function DashboardView() {
             >
               VOICE-FIRST AI
             </Text>
-          </HStack>
+        </HStack>
           <HStack spacing={3}>
             <Box position="relative" w="280px">
-              <Input
-                placeholder="Search everything..."
+            <Input
+              placeholder="Search everything..."
                 pl={3}
                 pr={8}
                 h="32px"
                 fontSize="sm"
                 bg={useColorModeValue('gray.50', 'gray.800')}
-                border="none"
+              border="none"
                 _placeholder={{ color: 'gray.400' }}
                 _focus={{
                   boxShadow: 'none',
@@ -102,7 +102,7 @@ export function DashboardView() {
               px={4}
             >
               HQ
-            </Button>
+          </Button>
           </HStack>
         </HStack>
       </Box>
@@ -125,7 +125,7 @@ export function DashboardView() {
           bg={useColorModeValue('white', 'gray.800')}
           flexShrink={0}
         >
-          <DashboardSidebar
+        <DashboardSidebar
             user={session.user}
             onSessionSelect={setActiveSessionId}
             onNewChat={() => setIsNewSessionModalOpen(true)}

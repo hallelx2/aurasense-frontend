@@ -213,24 +213,24 @@ export function PowerFeatures() {
                             <Text color="gray.700">{benefit}</Text>
                           </HStack>
                         ))}
-                      </VStack>
+                    </VStack>
 
                       {/* Stats */}
-                      <Box
+                    <Box
                         mt="auto"
                         pt={4}
                         borderTop="1px"
                         borderColor="gray.100"
-                        w="full"
-                      >
+                      w="full"
+                    >
                         <Text
                           fontSize="sm"
                           fontWeight="semibold"
                           color={feature.color}
                         >
-                          {feature.stat}
-                        </Text>
-                      </Box>
+                        {feature.stat}
+                      </Text>
+                    </Box>
                     </VStack>
                   </VStack>
                 </CardBody>
@@ -243,26 +243,26 @@ export function PowerFeatures() {
             {trustFeatures.map((feature, index) => (
               <MotionCard
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
                 transition={{
                   ...cardTransition,
                   delay: index * 0.1
                 }}
-                viewport={{ once: true }}
+            viewport={{ once: true }}
                 whileHover={{
                   y: -4,
                   boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
                   transition: cardTransition
                 }}
                 style={{ transition: 'all 0.3s ease' }}
-                bg="white"
+                    bg="white"
                 boxShadow="lg"
                 borderRadius="xl"
                 overflow="hidden"
                 border="1px"
                 borderColor="gray.100"
-              >
+                  >
                 <CardBody p={6}>
                   <VStack spacing={4} align="start">
                     <Center
@@ -276,17 +276,17 @@ export function PowerFeatures() {
 
                     <VStack spacing={2} align="start">
                       <Text fontSize="lg" fontWeight="bold" color="gray.800">
-                        {feature.title}
-                      </Text>
+                            {feature.title}
+                          </Text>
                       <Text color="gray.600" fontSize="sm" lineHeight="tall">
-                        {feature.description}
-                      </Text>
-                    </VStack>
-                  </VStack>
-                </CardBody>
+                            {feature.description}
+                          </Text>
+                        </VStack>
+                      </VStack>
+                    </CardBody>
               </MotionCard>
-            ))}
-          </SimpleGrid>
+                ))}
+              </SimpleGrid>
         </VStack>
       </Container>
     </Box>

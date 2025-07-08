@@ -44,40 +44,40 @@ export function CallToAction({ onGetStarted }: CallToActionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           transition={cardTransition}
           viewport={{ once: true }}
-          spacing={4}
-        >
-          <MotionHeading
-            as="h2"
-            fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
-            fontWeight="bold"
-            color={textColor}
-            lineHeight="shorter"
-            maxW="4xl"
+            spacing={4}
           >
-            Ready to Transform Your Lifestyle?
-          </MotionHeading>
+            <MotionHeading
+              as="h2"
+              fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
+              fontWeight="bold"
+              color={textColor}
+              lineHeight="shorter"
+              maxW="4xl"
+            >
+              Ready to Transform Your Lifestyle?
+            </MotionHeading>
 
-          <MotionText
-            fontSize={{ base: 'lg', md: 'xl' }}
-            color="whiteAlpha.900"
-            maxW="3xl"
-            lineHeight="tall"
-          >
-            Join thousands of users who've discovered the power of voice-first technology.
-            Your journey to accessible, health-aware lifestyle choices starts now.
-          </MotionText>
-        </MotionVStack>
+            <MotionText
+              fontSize={{ base: 'lg', md: 'xl' }}
+              color="whiteAlpha.900"
+              maxW="3xl"
+              lineHeight="tall"
+            >
+              Join thousands of users who've discovered the power of voice-first technology.
+              Your journey to accessible, health-aware lifestyle choices starts now.
+            </MotionText>
+          </MotionVStack>
 
-        <MotionVStack
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          <MotionVStack
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
           transition={{
             ...cardTransition,
             delay: 0.2
           }}
-          viewport={{ once: true }}
-          spacing={4}
-        >
+            viewport={{ once: true }}
+            spacing={4}
+          >
             <Button
               size="xl"
               bg="white"

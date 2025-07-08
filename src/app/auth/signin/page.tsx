@@ -6,11 +6,7 @@ import LoginView from '@/modules/authentication/views/LoginView';
 export default async function SignInPage() {
   const session = await getServerSession(authOptions);
 
-  // Redirect to dashboard if already authenticated
   if (session) {
-    if (!session.user.isOnboarded) {
-      redirect('/onboarding');
-    }
     redirect('/dashboard');
   }
 

@@ -22,25 +22,22 @@ import {
   CardHeader,
   CardFooter,
   useToast,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, UserPlus, ArrowLeft } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { SignupSchema, SignupInput } from '@/types/auth';
-import { authService } from '@/lib/api/auth';
 
 const MotionCard = motion(Card);
 
 export default function SignupView() {
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState<SignupInput>({
-    firstName: '',
-    lastName: '',
+  const [form, setForm] = useState({
+    name: '',
     email: '',
-    username: '',
     password: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,67 +47,44 @@ export default function SignupView() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear errors when user types
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
 
-    // Zod validation
-    const result = SignupSchema.safeParse(form);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
-        fieldErrors[err.path[0] as string] = err.message;
-      });
-      setErrors(fieldErrors);
+    // Simple validation
+    const newErrors: Record<string, string> = {};
+    if (!form.name) newErrors.name = 'Name is required';
+    if (!form.email) newErrors.email = 'Email is required';
+    if (!form.password) newErrors.password = 'Password is required';
+    else if (form.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       setLoading(false);
       return;
     }
-    setErrors({});
 
     try {
-      // Register the user
-      const registerResponse = await authService.register({
-        email: form.email,
-        password: form.password,
-        first_name: form.firstName,
-        last_name: form.lastName,
-        username: form.username,
-      });
-
-      if (!registerResponse?.data?.user) {
-        throw new Error('Registration failed');
-      }
-
-      // Sign in the user after successful registration
-      const signInResponse = await signIn('credentials', {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      });
-
-      if (signInResponse?.error) {
-        toast({
-          title: "Authentication Error",
-          description: "Error signing in after registration. Please try logging in manually.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-        router.push('/auth/signin');
-        return;
-      }
-
-      // Refresh to get the latest session
-      router.refresh();
-
-      // Redirect to onboarding after successful registration
-      router.push('/onboarding');
-    } catch (error: any) {
+      // For now, just show success and redirect to signin
       toast({
-        title: "Registration Error",
-        description: error.response?.data?.message || "An error occurred during registration",
+        title: "Account created!",
+        description: "Please sign in with the test account to try the app.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      router.push('/auth/signin');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred during sign up",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -166,40 +140,45 @@ export default function SignupView() {
                 </Box>
               </HStack>
               <Heading as="h2" size="lg" fontWeight="bold" color="primary.600">
-                Create Your Account
+                Create Account
               </Heading>
               <Text color="gray.500" fontSize="md">
-                Join Aurasense and unlock a voice-first lifestyle.
+                Join Aurasense today
               </Text>
             </VStack>
           </CardHeader>
+
+          <Alert status="info" mt={4} mx={6} borderRadius="md">
+            <AlertIcon />
+            <Text fontSize="sm">
+              For quick access, use our test account instead:{' '}
+              <Link
+                as={NextLink}
+                href="/auth/signin"
+                color="primary.500"
+                fontWeight="medium"
+                _hover={{ color: 'primary.600' }}
+              >
+                Sign in with test@example.com
+              </Link>
+            </Text>
+          </Alert>
+
           <Box as="form" onSubmit={handleSubmit}>
             <CardBody pt={4}>
               <VStack spacing={5}>
-                <HStack spacing={4} w="full">
-                  <FormControl isRequired isInvalid={!!errors.firstName}>
-                    <FormLabel>First Name</FormLabel>
-                    <Input
-                      name="firstName"
-                      placeholder="First Name"
-                      value={form.firstName}
-                      onChange={handleChange}
-                      autoComplete="given-name"
-                    />
-                    <FormErrorMessage>{errors.firstName}</FormErrorMessage>
-                  </FormControl>
-                  <FormControl isRequired isInvalid={!!errors.lastName}>
-                    <FormLabel>Last Name</FormLabel>
-                    <Input
-                      name="lastName"
-                      placeholder="Last Name"
-                      value={form.lastName}
-                      onChange={handleChange}
-                      autoComplete="family-name"
-                    />
-                    <FormErrorMessage>{errors.lastName}</FormErrorMessage>
-                  </FormControl>
-                </HStack>
+                <FormControl isRequired isInvalid={!!errors.name}>
+                  <FormLabel>Full Name</FormLabel>
+                  <Input
+                    name="name"
+                    placeholder="Your name"
+                    value={form.name}
+                    onChange={handleChange}
+                    autoComplete="name"
+                  />
+                  <FormErrorMessage>{errors.name}</FormErrorMessage>
+                </FormControl>
+
                 <FormControl isRequired isInvalid={!!errors.email}>
                   <FormLabel>Email</FormLabel>
                   <Input
@@ -212,24 +191,14 @@ export default function SignupView() {
                   />
                   <FormErrorMessage>{errors.email}</FormErrorMessage>
                 </FormControl>
-                <FormControl isRequired isInvalid={!!errors.username}>
-                  <FormLabel>Username</FormLabel>
-                  <Input
-                    name="username"
-                    placeholder="Choose a username"
-                    value={form.username}
-                    onChange={handleChange}
-                    autoComplete="username"
-                  />
-                  <FormErrorMessage>{errors.username}</FormErrorMessage>
-                </FormControl>
+
                 <FormControl isRequired isInvalid={!!errors.password}>
                   <FormLabel>Password</FormLabel>
                   <InputGroup>
                     <Input
                       name="password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Create a strong password"
+                      placeholder="Create a password"
                       value={form.password}
                       onChange={handleChange}
                       autoComplete="new-password"
@@ -247,19 +216,21 @@ export default function SignupView() {
                   </InputGroup>
                   <FormErrorMessage>{errors.password}</FormErrorMessage>
                 </FormControl>
+
                 <Button
                   type="submit"
                   size="lg"
                   w="full"
-                  isLoading={loading}
                   colorScheme="primary"
-                  loadingText="Creating Account..."
+                  isLoading={loading}
+                  loadingText="Creating account..."
                 >
                   Create Account
                 </Button>
               </VStack>
             </CardBody>
           </Box>
+
           <CardFooter pt={0}>
             <VStack w="full" spacing={4}>
               <Text color="gray.500">
@@ -269,11 +240,39 @@ export default function SignupView() {
                   href="/auth/signin"
                   color="primary.500"
                   fontWeight="medium"
-                  _hover={{ color: 'primary.600', textDecoration: 'none' }}
+                  _hover={{ color: 'primary.600' }}
                 >
                   Sign in
                 </Link>
               </Text>
+              <Box
+                p={4}
+                bg={useColorModeValue('gray.50', 'gray.800')}
+                borderRadius="lg"
+                w="full"
+              >
+                <VStack spacing={2}>
+                  <Text fontSize="sm" fontWeight="medium" color="primary.500">
+                    💡 Quick Start Available
+                  </Text>
+                  <Text fontSize="sm" color="gray.500" textAlign="center">
+                    Skip registration and try the app instantly with our test account:
+                  </Text>
+                  <Text fontSize="sm" fontFamily="mono" color="primary.500">
+                    test@example.com / password123
+                  </Text>
+                  <Link
+                    as={NextLink}
+                    href="/auth/signin"
+                    fontSize="sm"
+                    color="primary.500"
+                    fontWeight="medium"
+                    _hover={{ color: 'primary.600' }}
+                  >
+                    Sign in with test account →
+                  </Link>
+                </VStack>
+              </Box>
             </VStack>
           </CardFooter>
         </MotionCard>

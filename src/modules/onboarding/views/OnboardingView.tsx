@@ -36,6 +36,15 @@ interface OnboardingProgress {
   [key: string]: boolean;
 }
 
+interface OnboardingData {
+  dietaryPreferences: string[];
+  restrictions: string[];
+  allergies: string[];
+  voiceSample: string;
+  communityInterests: string[];
+  spiceTolerance: number;
+}
+
 const ONBOARDING_ITEMS = [
   {
     key: 'dietaryPreferences',
@@ -84,6 +93,14 @@ export function OnboardingView() {
   const toast = useToast();
   const router = useRouter();
   const { data: session, update: updateSession } = useSession();
+  const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    dietaryPreferences: [],
+    restrictions: [],
+    allergies: [],
+    voiceSample: '',
+    communityInterests: [],
+    spiceTolerance: 3,
+  });
 
   // Start the conversation when component mounts
   useEffect(() => {
@@ -124,15 +141,34 @@ export function OnboardingView() {
     setIsListening(false);
 
     // Add user's simulated response
+    const response = currentItem.simulatedResponse;
     setMessages(prev => [
       ...prev,
       {
         id: Date.now().toString(),
         sender: 'user',
-        text: currentItem.simulatedResponse,
+        text: response,
         timestamp: new Date().toISOString(),
       }
     ]);
+
+    // Update onboarding data based on response
+    setOnboardingData(prev => {
+      switch (currentItem.key) {
+        case 'dietaryPreferences':
+          return { ...prev, dietaryPreferences: extractPreferences(response) };
+        case 'restrictions':
+          return { ...prev, restrictions: extractRestrictions(response) };
+        case 'allergies':
+          return { ...prev, allergies: extractAllergies(response) };
+        case 'voiceSample':
+          return { ...prev, voiceSample: response };
+        case 'communityInterests':
+          return { ...prev, communityInterests: extractInterests(response) };
+        default:
+          return prev;
+      }
+    });
 
     // Mark current step as complete
     setProgress(prev => ({
@@ -140,7 +176,7 @@ export function OnboardingView() {
       [currentItem.key]: true
     }));
 
-    // Move to next step
+    // Move to next step or complete onboarding
     if (currentStep < ONBOARDING_ITEMS.length - 1) {
       const nextItem = ONBOARDING_ITEMS[currentStep + 1];
       setTimeout(() => {
@@ -156,8 +192,30 @@ export function OnboardingView() {
         setCurrentStep(currentStep + 1);
       }, 1000);
     } else {
-      // All steps complete
-      setOnboardingComplete(true);
+      // Complete onboarding
+      try {
+        const response = await fetch('/api/onboarding/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(onboardingData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to complete onboarding');
+        }
+
+        // Update session with new data
+        await updateSession();
+
+        setOnboardingComplete(true);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to complete onboarding. Please try again.',
+          status: 'error',
+          duration: 4000,
+        });
+      }
     }
   };
 
@@ -262,4 +320,37 @@ export function OnboardingView() {
       </Container>
     </Box>
   );
+}
+
+// Helper functions to extract data from responses
+function extractPreferences(text: string): string[] {
+  // Simple extraction - in production, use NLP or more sophisticated parsing
+  const preferences = [];
+  if (text.toLowerCase().includes('vegetarian')) preferences.push('vegetarian');
+  if (text.toLowerCase().includes('vegan')) preferences.push('vegan');
+  if (text.toLowerCase().includes('keto')) preferences.push('keto');
+  return preferences;
+}
+
+function extractRestrictions(text: string): string[] {
+  const restrictions = [];
+  if (text.toLowerCase().includes('lactose')) restrictions.push('lactose-free');
+  if (text.toLowerCase().includes('gluten')) restrictions.push('gluten-free');
+  return restrictions;
+}
+
+function extractAllergies(text: string): string[] {
+  const allergies = [];
+  if (text.toLowerCase().includes('peanut')) allergies.push('peanuts');
+  if (text.toLowerCase().includes('shellfish')) allergies.push('shellfish');
+  if (text.toLowerCase().includes('dairy')) allergies.push('dairy');
+  return allergies;
+}
+
+function extractInterests(text: string): string[] {
+  const interests = [];
+  if (text.toLowerCase().includes('healthy')) interests.push('healthy-cooking');
+  if (text.toLowerCase().includes('meal prep')) interests.push('meal-prep');
+  if (text.toLowerCase().includes('cuisine')) interests.push('international-cuisine');
+  return interests;
 }

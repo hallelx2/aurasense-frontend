@@ -202,6 +202,18 @@ export function DashboardSidebar({ user, onSessionSelect, onNewChat }: Dashboard
           </VStack>
         </Collapse>
       </Box>
+
+      {/* Sign Out Button - Added at the bottom with auto margin */}
+      <Button
+        variant="ghost"
+        colorScheme="gray"
+        size="sm"
+        onClick={() => signOut()}
+        mt="auto"
+        mb={2}
+      >
+        Sign Out
+      </Button>
     </VStack>
   );
 }

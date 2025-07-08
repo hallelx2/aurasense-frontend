@@ -29,13 +29,18 @@ import { Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { LoginSchema, LoginInput } from '@/types/auth';
 
 const MotionCard = motion(Card);
 
+// Dummy credentials for development
+const DUMMY_CREDENTIALS = {
+  email: 'test@example.com',
+  password: 'password123'
+};
+
 export default function LoginView() {
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState<LoginInput>({
+  const [form, setForm] = useState({
     email: '',
     password: '',
   });
@@ -46,49 +51,46 @@ export default function LoginView() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear errors when user types
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
 
-    // Zod validation
-    const result = LoginSchema.safeParse(form);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
-        fieldErrors[err.path[0] as string] = err.message;
+    // Simple validation
+    if (!form.email || !form.password) {
+      setErrors({
+        ...(!form.email && { email: 'Email is required' }),
+        ...(!form.password && { password: 'Password is required' })
       });
-      setErrors(fieldErrors);
       setLoading(false);
       return;
     }
-    setErrors({});
 
     try {
-      const response = await signIn('credentials', {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      });
-
-      if (response?.error) {
+      // Check against dummy credentials
+      if (form.email === DUMMY_CREDENTIALS.email && form.password === DUMMY_CREDENTIALS.password) {
+        // Sign in with NextAuth
+        const result = await signIn('credentials', {
+          email: form.email,
+          password: form.password,
+          redirect: true,
+          callbackUrl: '/dashboard'
+        });
+      } else {
         toast({
           title: "Authentication Error",
-          description: "Invalid email or password",
+          description: "Invalid credentials. Use test@example.com / password123",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
-        return;
       }
-
-      // Refresh to get the latest session
-      router.refresh();
-
-      // Check if user needs onboarding (we'll get this from the session)
-      // For now, redirect to dashboard
-      router.push('/dashboard');
     } catch (error) {
       toast({
         title: "Error",
@@ -153,6 +155,9 @@ export default function LoginView() {
               <Text color="gray.500" fontSize="md">
                 Log in to your Aurasense account
               </Text>
+              <Text color="blue.500" fontSize="sm">
+                Use: test@example.com / password123
+              </Text>
             </VStack>
           </CardHeader>
           <Box as="form" onSubmit={handleSubmit}>
@@ -198,8 +203,8 @@ export default function LoginView() {
                   type="submit"
                   size="lg"
                   w="full"
-                  isLoading={loading}
                   colorScheme="primary"
+                  isLoading={loading}
                   loadingText="Signing in..."
                 >
                   Sign In
@@ -209,15 +214,6 @@ export default function LoginView() {
           </Box>
           <CardFooter pt={0}>
             <VStack w="full" spacing={4}>
-              <Link
-                as={NextLink}
-                href="/auth/forgot-password"
-                color="primary.500"
-                fontWeight="medium"
-                _hover={{ color: 'primary.600', textDecoration: 'none' }}
-              >
-                Forgot your password?
-              </Link>
               <Text color="gray.500">
                 Don't have an account?{' '}
                 <Link
@@ -225,11 +221,34 @@ export default function LoginView() {
                   href="/auth/signup"
                   color="primary.500"
                   fontWeight="medium"
-                  _hover={{ color: 'primary.600', textDecoration: 'none' }}
+                  _hover={{ color: 'primary.600' }}
                 >
                   Sign up
                 </Link>
               </Text>
+              <Box
+                p={4}
+                bg={useColorModeValue('gray.50', 'gray.800')}
+                borderRadius="lg"
+                w="full"
+              >
+                <VStack spacing={2}>
+                  <Text fontSize="sm" fontWeight="medium" color="primary.500">
+                    🚀 Quick Start with Test Account
+                  </Text>
+                  <Text fontSize="sm" color="gray.500" textAlign="center">
+                    Try the app instantly with our test credentials:
+                  </Text>
+                  <Text fontSize="sm" fontFamily="mono" color="primary.500">
+                    Email: test@example.com
+                    <br />
+                    Password: password123
+                  </Text>
+                  <Text fontSize="xs" color="gray.500" textAlign="center">
+                    Note: This is a development account with sample data
+                  </Text>
+                </VStack>
+              </Box>
             </VStack>
           </CardFooter>
         </MotionCard>
