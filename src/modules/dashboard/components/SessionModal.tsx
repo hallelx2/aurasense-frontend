@@ -5,121 +5,94 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
-  Button,
+  FormControl,
+  FormLabel,
+  Input,
   VStack,
-  HStack,
+  Button,
+  Select,
+  Textarea,
   Text,
-  Box,
-  Icon,
-  useColorModeValue,
   Badge,
-  Avatar,
 } from '@chakra-ui/react';
-import { MessageSquare, Calendar } from 'lucide-react';
-import { useVoiceRecording } from '@/hooks/useVoiceRecording';
+import { useState } from 'react';
 
 interface SessionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSessionCreate: (sessionId: string) => void;
 }
 
-export function SessionModal({ isOpen, onClose }: SessionModalProps) {
-  const { startRecording, stopRecording, isRecording } = useVoiceRecording();
+export function SessionModal({ isOpen, onClose, onSessionCreate }: SessionModalProps) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedAgent, setSelectedAgent] = useState('chef');
 
-  const sessions = [
-    {
-      id: '1',
-      title: 'Food Discovery',
-      description: 'Find restaurants and order food',
-      icon: MessageSquare,
-      date: '2024-03-20',
-      time: '10:30 AM',
-      messages: [
-        { id: '1', text: 'Hi, I\'m looking for a restaurant', sender: 'user' },
-        { id: '2', text: 'I can help you find the perfect restaurant. What type of cuisine are you interested in?', sender: 'agent' },
-      ],
-    },
-    {
-      id: '2',
-      title: 'Travel Planning',
-      description: 'Plan your next trip',
-      icon: Calendar,
-      date: '2024-03-19',
-      time: '2:45 PM',
-      messages: [
-        { id: '1', text: 'I want to plan a weekend getaway', sender: 'user' },
-        { id: '2', text: 'I\'ll help you plan an amazing trip. Where would you like to go?', sender: 'agent' },
-      ],
-    },
-  ];
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, this would create a session in the backend
+    const sessionId = Math.random().toString(36).substring(7);
+    onSessionCreate(sessionId);
+  };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside" isCentered>
-      <ModalOverlay backdropFilter="blur(10px)" bg="blackAlpha.600" />
-      <ModalContent maxW="800px" maxH="90vh" mx={4}>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <ModalOverlay />
+      <ModalContent>
         <ModalHeader>
-          <HStack spacing={3}>
-            <Icon as={MessageSquare} color="primary.500" />
-            <Text>Session Details</Text>
-          </HStack>
+          <Text>Start New Session</Text>
+          <Badge colorScheme="primary" ml={2}>WITH CHEF</Badge>
         </ModalHeader>
         <ModalCloseButton />
+        <ModalBody pb={6}>
+          <form onSubmit={handleSubmit}>
+            <VStack spacing={4}>
+              <FormControl>
+                <FormLabel>Session Title</FormLabel>
+                <Input
+                  placeholder="e.g., Dinner Order, Weekend Trip Planning"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </FormControl>
 
-        <ModalBody>
-          <VStack spacing={6} align="stretch">
-            {sessions.map((session) => (
-              <Box
-                key={session.id}
-                p={4}
-                bg={useColorModeValue('white', 'gray.800')}
-                borderRadius="lg"
-                borderWidth={1}
-                borderColor={useColorModeValue('gray.200', 'gray.700')}
+              <FormControl>
+                <FormLabel>Agent Selection</FormLabel>
+                <Select
+                  value={selectedAgent}
+                  onChange={(e) => setSelectedAgent(e.target.value)}
+                >
+                  <option value="chef">Chef - Food Discovery Agent</option>
+                  <option value="guardian" disabled>Guardian - Health & Safety Agent (Soon)</option>
+                  <option value="navigator" disabled>Navigator - Travel Companion Agent (Soon)</option>
+                  <option value="connector" disabled>Connector - Community Navigator Agent (Soon)</option>
+                </Select>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Description (Optional)</FormLabel>
+                <Textarea
+                  placeholder="Brief description of what you want to accomplish..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                />
+              </FormControl>
+
+              <Button
+                colorScheme="primary"
+                type="submit"
+                width="full"
+                size="lg"
+                mt={4}
               >
-                <VStack align="stretch" spacing={4}>
-                  <HStack spacing={4}>
-                    <Avatar
-                      icon={<Icon as={session.icon} />}
-                      bg="primary.500"
-                      color="white"
-                    />
-                    <Box flex={1}>
-                      <HStack>
-                        <Text fontWeight="bold">{session.title}</Text>
-                        <Badge colorScheme="primary">{session.date}</Badge>
-                      </HStack>
-                      <Text color="gray.500" fontSize="sm">
-                        {session.description}
-                      </Text>
-                    </Box>
-                  </HStack>
-
-                  <VStack align="stretch" spacing={3}>
-                    {session.messages.map((message) => (
-                      <Box
-                        key={message.id}
-                        bg={message.sender === 'user' ? 'gray.100' : 'primary.50'}
-                        p={3}
-                        borderRadius="lg"
-                      >
-                        <Text>{message.text}</Text>
-                      </Box>
-                    ))}
-                  </VStack>
-                </VStack>
-              </Box>
-            ))}
-          </VStack>
+                Create Session
+              </Button>
+            </VStack>
+          </form>
         </ModalBody>
-
-        <ModalFooter>
-          <Button variant="ghost" onClick={onClose}>
-            Close
-          </Button>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );
