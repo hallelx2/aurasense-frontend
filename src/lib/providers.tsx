@@ -1,10 +1,10 @@
 'use client';
 
-import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
+import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { SessionProvider } from 'next-auth/react';
-import { aurasenseTheme } from './theme';
+import { theme } from './theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,12 +26,12 @@ interface ProvidersProps {
 }
 
 export function Providers({ children, session }: ProvidersProps) {
+  const extendedTheme = extendTheme(theme);
   return (
     <>
-      <ColorModeScript initialColorMode={aurasenseTheme.config.initialColorMode} />
       <SessionProvider session={session}>
         <QueryClientProvider client={queryClient}>
-          <ChakraProvider theme={aurasenseTheme}>
+          <ChakraProvider theme={extendedTheme}>
             {children}
           </ChakraProvider>
           <ReactQueryDevtools initialIsOpen={false} />

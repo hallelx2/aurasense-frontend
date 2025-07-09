@@ -1,34 +1,107 @@
 "use client";
+import { useEffect, useState, useRef, useCallback } from 'react';
 
-import { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+interface WebSocketHook {
+  socket: WebSocket | null;
+  isConnected: boolean;
+  lastMessage: MessageEvent | null;
+  sendMessage: (message: string) => void;
+  reconnect: () => void;
+}
 
-export function useWebSocket(userId?: string) {
-  const [socket, setSocket] = useState<Socket | null>(null);
+export function useWebSocket(url: string | null, authToken?: string | null): WebSocketHook {
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [lastMessage, setLastMessage] = useState<MessageEvent | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isConnectingRef = useRef(false);
+  const errorLoggedRef = useRef(false);
+
+  const connect = useCallback(() => {
+    if (!url || isConnectingRef.current) return;
+
+    // Clear existing connection
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
+    }
+
+    isConnectingRef.current = true;
+    errorLoggedRef.current = false;
+
+    const ws = new WebSocket(url);
+    socketRef.current = ws;
+    setSocket(ws);
+
+    ws.onopen = () => {
+      setIsConnected(true);
+      isConnectingRef.current = false;
+      console.log('WebSocket connected successfully');
+    };
+
+    ws.onclose = (event) => {
+      setIsConnected(false);
+      isConnectingRef.current = false;
+      console.log('WebSocket closed:', event.code, event.reason);
+      
+      // Only auto-reconnect if it was an unexpected close
+      if (event.code !== 1000 && event.code !== 1001 && url) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, 3000);
+      }
+    };
+
+    ws.onmessage = (event) => {
+      setLastMessage(event);
+    };
+
+    ws.onerror = (error) => {
+      if (!errorLoggedRef.current) {
+        console.error('WebSocket error. State:', ws.readyState, 'URL:', url);
+        errorLoggedRef.current = true;
+      }
+      setIsConnected(false);
+      isConnectingRef.current = false;
+    };
+  }, [url]);
+
+  const reconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+    connect();
+  }, [connect]);
 
   useEffect(() => {
-    if (!userId) return;
-
-    const socketInstance = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL!, {
-      auth: { userId },
-      transports: ['websocket']
-    });
-
-    socketInstance.on('connect', () => {
-      setIsConnected(true);
-    });
-
-    socketInstance.on('disconnect', () => {
+    if (!url) {
       setIsConnected(false);
-    });
+      setSocket(null);
+      return;
+    }
 
-    setSocket(socketInstance);
+    connect();
 
     return () => {
-      socketInstance.disconnect();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
+      isConnectingRef.current = false;
     };
-  }, [userId]);
+  }, [url, connect]);
 
-  return { socket, isConnected };
+  const sendMessage = useCallback((message: string) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(message);
+    } else {
+      console.error('WebSocket is not connected.');
+    }
+  }, []);
+
+  return { socket, isConnected, lastMessage, sendMessage, reconnect };
 }

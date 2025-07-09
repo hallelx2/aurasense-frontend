@@ -38,7 +38,10 @@ const MotionBox = motion(Box);
 export function SessionView({ sessionId, onNewChat }: SessionViewProps) {
   const { data: session } = useSession();
   const { startRecording, stopRecording, isRecording, audioBlob } = useVoiceRecording();
-  const { socket, isConnected } = useWebSocket(session?.user?.id);
+  const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL && sessionId
+    ? `${process.env.NEXT_PUBLIC_WEBSOCKET_URL.replace(/^http/, 'ws')}/ws/session/${sessionId}`
+    : null;
+  const { socket, isConnected } = useWebSocket(wsUrl);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);

@@ -1,4 +1,4 @@
-import { extendTheme, type ThemeConfig } from '@chakra-ui/react';
+import { type ThemeConfig } from '@chakra-ui/react';
 
 const config: ThemeConfig = {
   initialColorMode: 'light',
@@ -23,7 +23,7 @@ const keyframes = {
   }
 };
 
-export const aurasenseTheme = extendTheme({
+export const theme = {
   config,
   styles: {
     global: {
@@ -294,63 +294,8 @@ export const aurasenseTheme = extendTheme({
           borderRadius: 'xl',
           p: 4,
           boxShadow: 'sm',
-          maxW: '600px',
-          mx: 'auto',
-          animation: 'fadeIn 0.3s ease-out',
-        },
-        text: {
-          fontSize: 'lg',
-          color: 'gray.700',
-          textAlign: 'center',
-        },
-      },
-    },
-    VoicePrompt: {
-      baseStyle: {
-        container: {
-          textAlign: 'center',
-          mb: 8,
-        },
-        text: {
-          fontSize: '2xl',
-          fontWeight: 'medium',
-          color: 'gray.800',
-          animation: 'fadeIn 0.5s ease-out',
         },
       },
     },
   },
-  layerStyles: {
-    voiceContainer: {
-      bg: 'white',
-      borderRadius: 'xl',
-      p: 6,
-      boxShadow: 'lg',
-      maxW: '600px',
-      mx: 'auto',
-      textAlign: 'center',
-    },
-    gradientBg: {
-      bgGradient: 'linear(to-b, primary.50, secondary.50)',
-      minH: '100vh',
-    },
-  },
-  textStyles: {
-    voicePrompt: {
-      fontSize: ['xl', '2xl'],
-      fontWeight: 'medium',
-      color: 'gray.800',
-      lineHeight: 'tall',
-    },
-    voiceTranscript: {
-      fontSize: ['md', 'lg'],
-      color: 'gray.700',
-      fontStyle: 'italic',
-    },
-  },
-  animations: {
-    pulse: `${keyframes.pulse} 1.5s infinite`,
-    wave: `${keyframes.wave} 1s infinite`,
-    fadeIn: `${keyframes.fadeIn} 0.3s ease-out`,
-  },
-});
+};

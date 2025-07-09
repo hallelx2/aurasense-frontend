@@ -31,17 +31,17 @@ export const authService = {
   },
 
   async getProfile() {
-    const response = await apiClient.get<AuthResponse>('/auth/profile');
+    const response = await apiClient.get<AuthResponse>('/auth/me');
     return response.data;
   },
 
   async updateProfile(data: Partial<RegisterData>) {
-    const response = await apiClient.patch<AuthResponse>('/auth/profile', data);
+    const response = await apiClient.patch<AuthResponse>('/auth/me', data);
     return response.data;
   },
 
   async updateOnboardingStatus(isOnboarded: boolean) {
-    const response = await apiClient.patch<AuthResponse>('/auth/profile', { isOnboarded });
+    const response = await apiClient.patch<AuthResponse>('/auth/me', { isOnboarded });
     return response.data;
   }
 };

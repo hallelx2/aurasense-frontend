@@ -2,27 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { z } from 'zod';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-// Validation schema for registration data
-const registerSchema = z.object({
+const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   name: z.string().min(2),
-  username: z.string().min(3),
-  first_name: z.string().min(2),
-  last_name: z.string().min(2),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validate request body
-    const validatedData = registerSchema.parse(body);
+    // Validate what the frontend sends
+    const { name, email, password } = signupSchema.parse(body);
 
-    // Forward the registration request to the backend
-    const response = await axios.post(`${BACKEND_URL}/api/v1/auth/register`, validatedData, {
+    // Derive additional fields for the backend
+    const nameParts = name.split(' ');
+    const first_name = nameParts[0];
+    const last_name = nameParts.slice(1).join(' ') || first_name;
+    const username = email.split('@')[0];
+
+    const backendData = {
+      email,
+      password,
+      first_name,
+      last_name,
+      username,
+    };
+
+    // Forward the complete data to the backend's register endpoint
+    const response = await axios.post(`${BACKEND_URL}/api/v1/auth/register`, backendData, {
       headers: {
         'Content-Type': 'application/json',
       },

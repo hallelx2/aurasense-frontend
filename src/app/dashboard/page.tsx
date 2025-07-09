@@ -10,6 +10,11 @@ export default async function DashboardPage() {
     redirect('/auth/signin');
   }
 
+  // Redirect to onboarding if user hasn't completed it
+  if (!session.user.isOnboarded) {
+    redirect('/onboarding');
+  }
+
   return (
     <DashboardView />
   );

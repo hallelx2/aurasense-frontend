@@ -32,12 +32,6 @@ import { signIn } from 'next-auth/react';
 
 const MotionCard = motion(Card);
 
-// Dummy credentials for development
-const DUMMY_CREDENTIALS = {
-  email: 'test@example.com',
-  password: 'password123'
-};
-
 export default function LoginView() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
@@ -73,23 +67,31 @@ export default function LoginView() {
     }
 
     try {
-      // Check against dummy credentials
-      if (form.email === DUMMY_CREDENTIALS.email && form.password === DUMMY_CREDENTIALS.password) {
-        // Sign in with NextAuth
-        const result = await signIn('credentials', {
-          email: form.email,
-          password: form.password,
-          redirect: true,
-          callbackUrl: '/dashboard'
-        });
-      } else {
+      // Sign in with NextAuth - let the backend handle authentication
+      const result = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+        callbackUrl: '/dashboard'
+      });
+
+      if (result?.error) {
         toast({
           title: "Authentication Error",
-          description: "Invalid credentials. Use test@example.com / password123",
+          description: "Invalid email or password. Please check your credentials.",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
+      } else if (result?.ok) {
+        toast({
+          title: "Success",
+          description: "Successfully signed in!",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        router.push('/dashboard');
       }
     } catch (error) {
       toast({
@@ -154,9 +156,6 @@ export default function LoginView() {
               </Heading>
               <Text color="gray.500" fontSize="md">
                 Log in to your Aurasense account
-              </Text>
-              <Text color="blue.500" fontSize="sm">
-                Use: test@example.com / password123
               </Text>
             </VStack>
           </CardHeader>
@@ -234,18 +233,10 @@ export default function LoginView() {
               >
                 <VStack spacing={2}>
                   <Text fontSize="sm" fontWeight="medium" color="primary.500">
-                    🚀 Quick Start with Test Account
+                    🎙️ Voice-First AI Assistant
                   </Text>
                   <Text fontSize="sm" color="gray.500" textAlign="center">
-                    Try the app instantly with our test credentials:
-                  </Text>
-                  <Text fontSize="sm" fontFamily="mono" color="primary.500">
-                    Email: test@example.com
-                    <br />
-                    Password: password123
-                  </Text>
-                  <Text fontSize="xs" color="gray.500" textAlign="center">
-                    Note: This is a development account with sample data
+                    Experience personalized food recommendations, travel planning, and social connections powered by AI
                   </Text>
                 </VStack>
               </Box>

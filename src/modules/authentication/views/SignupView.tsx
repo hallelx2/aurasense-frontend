@@ -72,19 +72,31 @@ export default function SignupView() {
     }
 
     try {
-      // For now, just show success and redirect to signin
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Signup failed');
+      }
+
       toast({
         title: "Account created!",
-        description: "Please sign in with the test account to try the app.",
+        description: "You can now sign in with your new credentials.",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
       router.push('/auth/signin');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "An error occurred during sign up",
+        description: error.message || "An error occurred during sign up",
         status: "error",
         duration: 5000,
         isClosable: true,

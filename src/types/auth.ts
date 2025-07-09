@@ -28,7 +28,10 @@ export const AuthResponseSchema = z.object({
       first_name: z.string(),
       last_name: z.string(),
       username: z.string(),
-      isOnboarded: z.boolean()
+      isOnboarded: z.boolean().optional(),
+      onboarding_completed: z.boolean().optional(),
+      health_profile_verified: z.boolean().optional(),
+      created_at: z.string().optional()
     }),
     access_token: z.string()
   })

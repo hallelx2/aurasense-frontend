@@ -1,16 +1,26 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import type { User } from 'next-auth';
+import axios from 'axios';
 
-// Dummy credentials for development
-const DUMMY_USER: User = {
-  id: '1',
-  email: 'test@example.com',
-  name: 'Test User',
-  isOnboarded: false, // Default to false, will be updated after onboarding
-};
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-const DUMMY_PASSWORD = 'password123';
+interface BackendAuthResponse {
+  status: string;
+  message: string;
+  data: {
+    user: {
+      uid: string;
+      email: string;
+      first_name: string;
+      last_name: string;
+      username: string;
+      isOnboarded: boolean;
+      onboarding_completed?: boolean;
+    };
+    access_token: string;
+  };
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -25,12 +35,26 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Check against dummy credentials
-        if (
-          credentials.email === DUMMY_USER.email &&
-          credentials.password === DUMMY_PASSWORD
-        ) {
-          return DUMMY_USER;
+        try {
+          const response = await axios.post<BackendAuthResponse>(`${BACKEND_URL}/api/v1/auth/login`, {
+            email: credentials.email,
+            password: credentials.password
+          });
+
+          if (response.data.status === 'success') {
+            const { user, access_token } = response.data.data;
+            
+            return {
+              id: user.uid,
+              email: user.email,
+              name: `${user.first_name} ${user.last_name}`,
+              isOnboarded: user.isOnboarded || user.onboarding_completed || false,
+              accessToken: access_token
+            } as User & { accessToken: string };
+          }
+        } catch (error) {
+          console.error('Authentication error:', error);
+          return null;
         }
 
         return null;
@@ -49,15 +73,17 @@ export const authOptions: NextAuthOptions = {
         token.isOnboarded = user.isOnboarded;
         token.email = user.email;
         token.name = user.name;
+        token.accessToken = (user as any).accessToken;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub || '1';
+        session.user.id = token.sub || '';
         session.user.isOnboarded = token.isOnboarded as boolean;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
+        session.accessToken = token.accessToken as string;
       }
       return session;
     }
