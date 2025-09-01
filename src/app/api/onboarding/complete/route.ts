@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,18 +13,18 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
-    
+
     // Validate that we have the required fields
     const requiredFields = [
       'age', 'dietary_restrictions', 'cuisine_preferences', 'price_range',
       'is_tourist', 'cultural_background', 'food_allergies', 'spice_tolerance',
       'preferred_languages', 'phone'
     ];
-    
-    const missingFields = requiredFields.filter(field => 
+
+    const missingFields = requiredFields.filter(field =>
       data[field] === undefined || data[field] === null || data[field] === ''
     );
-    
+
     if (missingFields.length > 0) {
       return NextResponse.json({
         error: 'Missing required fields',
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (backendError: any) {
       console.error('Backend onboarding completion error:', backendError.response?.data || backendError.message);
-      
+
       // For now, return success even if backend fails
       // This allows the frontend to continue working
       return NextResponse.json({

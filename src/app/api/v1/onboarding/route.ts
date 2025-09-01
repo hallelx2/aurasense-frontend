@@ -3,12 +3,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error('Onboarding API error:', error.response?.data || error.message);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to process onboarding request',
-        details: error.response?.data || error.message 
+        details: error.response?.data || error.message
       },
       { status: error.response?.status || 500 }
     );

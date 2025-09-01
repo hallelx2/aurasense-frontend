@@ -36,7 +36,9 @@ const MotionCard = motion(Card);
 export default function SignupView() {
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
+    username: '',
     email: '',
     password: '',
   });
@@ -60,7 +62,9 @@ export default function SignupView() {
 
     // Simple validation
     const newErrors: Record<string, string> = {};
-    if (!form.name) newErrors.name = 'Name is required';
+    if (!form.first_name) newErrors.first_name = 'First name is required';
+    if (!form.last_name) newErrors.last_name = 'Last name is required';
+    if (!form.username) newErrors.username = 'Username is required';
     if (!form.email) newErrors.email = 'Email is required';
     if (!form.password) newErrors.password = 'Password is required';
     else if (form.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
@@ -72,17 +76,19 @@ export default function SignupView() {
     }
 
     try {
-      const response = await fetch('/api/auth/signup', {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://teepon.tech';
+      const response = await fetch(`${BACKEND_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'accept': 'application/json',
         },
         body: JSON.stringify(form),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Signup failed');
+      const data = await response.json();
+      if (!response.ok || data.status !== 'success') {
+        throw new Error(data.message || 'Signup failed');
       }
 
       toast({
@@ -160,35 +166,43 @@ export default function SignupView() {
             </VStack>
           </CardHeader>
 
-          <Alert status="info" mt={4} mx={6} borderRadius="md">
-            <AlertIcon />
-            <Text fontSize="sm">
-              For quick access, use our test account instead:{' '}
-              <Link
-                as={NextLink}
-                href="/auth/signin"
-                color="primary.500"
-                fontWeight="medium"
-                _hover={{ color: 'primary.600' }}
-              >
-                Sign in with test@example.com
-              </Link>
-            </Text>
-          </Alert>
-
           <Box as="form" onSubmit={handleSubmit}>
             <CardBody pt={4}>
               <VStack spacing={5}>
-                <FormControl isRequired isInvalid={!!errors.name}>
-                  <FormLabel>Full Name</FormLabel>
+                <FormControl isRequired isInvalid={!!errors.first_name}>
+                  <FormLabel>First Name</FormLabel>
                   <Input
-                    name="name"
-                    placeholder="Your name"
-                    value={form.name}
+                    name="first_name"
+                    placeholder="First name"
+                    value={form.first_name}
                     onChange={handleChange}
-                    autoComplete="name"
+                    autoComplete="given-name"
                   />
-                  <FormErrorMessage>{errors.name}</FormErrorMessage>
+                  <FormErrorMessage>{errors.first_name}</FormErrorMessage>
+                </FormControl>
+
+                <FormControl isRequired isInvalid={!!errors.last_name}>
+                  <FormLabel>Last Name</FormLabel>
+                  <Input
+                    name="last_name"
+                    placeholder="Last name"
+                    value={form.last_name}
+                    onChange={handleChange}
+                    autoComplete="family-name"
+                  />
+                  <FormErrorMessage>{errors.last_name}</FormErrorMessage>
+                </FormControl>
+
+                <FormControl isRequired isInvalid={!!errors.username}>
+                  <FormLabel>Username</FormLabel>
+                  <Input
+                    name="username"
+                    placeholder="Username"
+                    value={form.username}
+                    onChange={handleChange}
+                    autoComplete="username"
+                  />
+                  <FormErrorMessage>{errors.username}</FormErrorMessage>
                 </FormControl>
 
                 <FormControl isRequired isInvalid={!!errors.email}>
@@ -257,34 +271,6 @@ export default function SignupView() {
                   Sign in
                 </Link>
               </Text>
-              <Box
-                p={4}
-                bg={useColorModeValue('gray.50', 'gray.800')}
-                borderRadius="lg"
-                w="full"
-              >
-                <VStack spacing={2}>
-                  <Text fontSize="sm" fontWeight="medium" color="primary.500">
-                    💡 Quick Start Available
-                  </Text>
-                  <Text fontSize="sm" color="gray.500" textAlign="center">
-                    Skip registration and try the app instantly with our test account:
-                  </Text>
-                  <Text fontSize="sm" fontFamily="mono" color="primary.500">
-                    test@example.com / password123
-                  </Text>
-                  <Link
-                    as={NextLink}
-                    href="/auth/signin"
-                    fontSize="sm"
-                    color="primary.500"
-                    fontWeight="medium"
-                    _hover={{ color: 'primary.600' }}
-                  >
-                    Sign in with test account →
-                  </Link>
-                </VStack>
-              </Box>
             </VStack>
           </CardFooter>
         </MotionCard>

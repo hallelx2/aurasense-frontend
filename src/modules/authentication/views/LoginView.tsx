@@ -71,8 +71,7 @@ export default function LoginView() {
       const result = await signIn('credentials', {
         email: form.email,
         password: form.password,
-        redirect: false,
-        callbackUrl: '/dashboard'
+        redirect: true // Let NextAuth handle the redirect
       });
 
       if (result?.error) {
@@ -83,15 +82,6 @@ export default function LoginView() {
           duration: 5000,
           isClosable: true,
         });
-      } else if (result?.ok) {
-        toast({
-          title: "Success",
-          description: "Successfully signed in!",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        router.push('/dashboard');
       }
     } catch (error) {
       toast({

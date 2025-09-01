@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import type { User } from 'next-auth';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 interface BackendAuthResponse {
   status: string;
@@ -43,7 +43,7 @@ export const authOptions: NextAuthOptions = {
 
           if (response.data.status === 'success') {
             const { user, access_token } = response.data.data;
-            
+
             return {
               id: user.uid,
               email: user.email,

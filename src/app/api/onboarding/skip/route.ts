@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,14 +24,14 @@ export async function POST(request: NextRequest) {
           },
         }
       );
-      
+
       // Return success response with updated user info
       return NextResponse.json({
         success: true,
         message: 'Onboarding skipped successfully',
         user: response.data.user,
       });
-      
+
     } catch (backendError) {
       console.error('Backend skip endpoint error:', backendError);
       return NextResponse.json(
